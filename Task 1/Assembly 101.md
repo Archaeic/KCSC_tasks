@@ -20,19 +20,19 @@ các lệnh cơ bản:
 `test eax, ebx`; thử eax ebx                                                                                                                                     
 `jne`      ; nhảy nếu không bằng                                                                                                                                   
 `je`         ; nhảy nếu bằng
-`jump`         ; nhảy tới địa chỉ
-`add eax, ebx` ; eax = eax + ebx
-`sub eax, ebx` ; eax = eax - ebx
-`inc eax`      ; eax = eax + 1
-`dec eax`      ; eax = eax -1 
-`imul eax, 0x3`; eax = eax * 0x3
-`idiv eax, 0x6`; eax = eax / 0x6
-`and eax, 0x1` ; eax = eax & 0x1
-`or eax, 0x1`  ; eax = eax | 0x1
-`xor eax, 0x1` ; eax = eax ^ 0x1
-`not eax `    ; eax = ~eax 
-`shl eax, 0x1` ; eax = eax << 0x1 (nhân 2)
-`shr eax, 0x1` ; eax = eax >> 0x1 (chia 2)
+`jump`         ; nhảy tới địa chỉ                                                                                                                                  
+`add eax, ebx` ; eax = eax + ebx                                                                                                                                   
+`sub eax, ebx` ; eax = eax - ebx                                                                                                                                
+`inc eax`      ; eax = eax + 1                                                                                                                                    
+`dec eax`      ; eax = eax -1                                                                                                                                     
+`imul eax, 0x3`; eax = eax * 0x3                                                                                                                                
+`idiv eax, 0x6`; eax = eax / 0x6                                                                                                                                
+`and eax, 0x1` ; eax = eax & 0x1                                                                                                                                
+`or eax, 0x1`  ; eax = eax | 0x1                                                                                                                                
+`xor eax, 0x1` ; eax = eax ^ 0x1                                                                                                                                
+`not eax `    ; eax = ~eax                                                                                                                                         
+`shl eax, 0x1` ; eax = eax << 0x1 (nhân 2)                                                                                                                        
+`shr eax, 0x1` ; eax = eax >> 0x1 (chia 2)                                                                                                                        
 
 ngoài ra còn có các **flags** như:
 
