@@ -93,12 +93,12 @@ thì ta có thể thấy nó đang push giá trị `_main+22` vào stack
 
 ![image](https://hackmd.io/_uploads/ByoISQnV-x.png)
 
-vào `_main+22` thì nó dẫn tới cái này thì nó nghĩa là địa chỉ của lệnh kế tiếp sau call sum 
-vậy thì cách hoạt động của nó theo thứ tự như sau:
-B1: `push ebp` để lưu ebp vào stack
-B2: `move ebp, esp`, di chuyển esp vào ebp => thiết lập stack mới
-B3: `pop ebp` lấy lại ebp cũ 
-B4: `ret` trở về hàm call
+vào `_main+22` thì nó dẫn tới cái này thì nó nghĩa là địa chỉ của lệnh kế tiếp sau call sum                                                                        
+vậy thì cách hoạt động của nó theo thứ tự như sau:                                                                                                                
+B1: `push ebp` để lưu ebp vào stack                                                                                                                                
+B2: `move ebp, esp`, di chuyển esp vào ebp => thiết lập stack mới                                                                                                
+B3: `pop ebp` lấy lại ebp cũ                                                                                                                                     
+B4: `ret` trở về hàm call                                                                                                                                        
 
 ***Stdcall***
 
