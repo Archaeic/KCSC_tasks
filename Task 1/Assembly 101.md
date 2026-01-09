@@ -1,8 +1,3 @@
----
-title: 'Task 1: Assembly 101'
-
----
-
 # Task 1: Assembly 101
 
 Nguồn học: [1](https://www.youtube.com/watch?v=bhTGgzRsn1k&t=3416s), [2](https://adminvietnam.org/kien-thuc-co-ban-ve-assembly/4463/)
@@ -39,6 +34,7 @@ các lệnh cơ bản:
 `shr eax, 0x1` ; eax = eax >> 0x1 (chia 2)
 
 ngoài ra còn có các **flags** như:
+
 ![image](https://hackmd.io/_uploads/S1tFOg3EWl.png)
 
 #### Stack
@@ -59,6 +55,7 @@ Big endian sẽ sắp xếp như sau: 0A 0B 0C 0D
 #### Calling convention
 
 Quy ước chung: 
+
 ![image](https://hackmd.io/_uploads/ryRmv7CEZg.png)
 
 
@@ -79,17 +76,22 @@ int main(){
 }
 ```
 cho lên IDA thì đây là dạng của call cdecl
+
 ![image](https://hackmd.io/_uploads/Syy0zXh4Wg.png)
 
 
 chương trình thực hiện mov 2 giá trị vào stack theo nguyên tắc ngược lại rồi sau đó gọi hàm sum
+
 ![image](https://hackmd.io/_uploads/SybzXX2N-l.png)
 
 vào hàm sum 
 
 ![image](https://hackmd.io/_uploads/ry6TVQhNbx.png)
+
 thì ta có thể thấy nó đang push giá trị `_main+22` vào stack
+
 ![image](https://hackmd.io/_uploads/ByoISQnV-x.png)
+
 vào `_main+22` thì nó dẫn tới cái này thì nó nghĩa là địa chỉ của lệnh kế tiếp sau call sum 
 vậy thì cách hoạt động của nó theo thứ tự như sau:
 B1: `push ebp` để lưu ebp vào stack
@@ -154,7 +156,7 @@ start: ;bắt đầu ct
     print chr$(13,10)
     inkey ;cho nhập số
     
-    exit ;thóat ct
+    exit ;thoát ct
     
 end start ;kết thúc ct     
 ```
