@@ -14,6 +14,7 @@ ESP và SP: trỏ tới đỉnh hiện thời của stack.
 EBP và BP: thường dùng để tham chiếu đến các biến tham số sử dụng trong chương trình con.
 #### Instructions
 các lệnh cơ bản:
+
 `mov eax, 0x1` ; eax = 0x1
 `cmp eax, ebx` ; so sánh eax ebx
 `test eax, ebx`; thử eax ebx
