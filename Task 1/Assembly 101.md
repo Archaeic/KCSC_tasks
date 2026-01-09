@@ -51,6 +51,7 @@ Endianness là cách sắp xếp thứ tự byte
 vd: 0A0B0C0D                                                                                                                                                    
 Little endian sẽ sắp xếp như sau: 0D 0C 0B 0A                                                                                                                    
 Big endian sẽ sắp xếp như sau: 0A 0B 0C 0D                                                                                                                        
+<img width="960" height="480" alt="image" src="https://github.com/user-attachments/assets/0dfdd416-0d63-4cc9-9abb-c4d262785aa6" />
 
 
 #### Calling convention
