@@ -5,13 +5,14 @@ Nguồn học: [1](https://www.youtube.com/watch?v=bhTGgzRsn1k&t=3416s), [2](htt
 
 #### Registers
 
-EAX: thanh ghi tích lũy. Thường được dùng trong nhập xuất và các lệnh tính toán số học.
-EBX: thanh ghi cơ sở. Thường được dùng để đánh dấu địa chỉ, lưu địa chỉ bắt đầu của 1 mảng.
-ECX: thanh ghi đếm. Thường được dùng trong vòng lặp, đếm số lần lặp.
-EDX: thanh ghi dữ liệu. Thường được sử dụng trong nhập xuất dữ liệu như EAX.
-EIP và IP: trỏ tới địa chỉ chứa lệnh tiếp theo sẽ được thực thi.
-ESP và SP: trỏ tới đỉnh hiện thời của stack.
-EBP và BP: thường dùng để tham chiếu đến các biến tham số sử dụng trong chương trình con.
+EAX: thanh ghi tích lũy. Thường được dùng trong nhập xuất và các lệnh tính toán số học.                                                                            
+EBX: thanh ghi cơ sở. Thường được dùng để đánh dấu địa chỉ, lưu địa chỉ bắt đầu của 1 mảng.                                                                        
+ECX: thanh ghi đếm. Thường được dùng trong vòng lặp, đếm số lần lặp.                                                                                               
+EDX: thanh ghi dữ liệu. Thường được sử dụng trong nhập xuất dữ liệu như EAX.                                                                                    
+EIP và IP: trỏ tới địa chỉ chứa lệnh tiếp theo sẽ được thực thi.                                                                                                
+ESP và SP: trỏ tới đỉnh hiện thời của stack.                                                                                                                       
+EBP và BP: thường dùng để tham chiếu đến các biến tham số sử dụng trong chương trình con.   
+
 #### Instructions
 các lệnh cơ bản:
 
