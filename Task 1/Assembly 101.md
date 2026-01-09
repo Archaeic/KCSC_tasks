@@ -106,7 +106,7 @@ __stdcall chủ yếu được API Windows sử dụng và nhỏ gọn hơn __cd
 
 Ngoài ra còn có nhiều calling conventions:`__fastcall`, `__clrcall`, `__thiscall` và `__vectorcall`. Một số cái lỗi thời như `__pascal`, `__fortran`, `__syscall`.
 
-## Code chương trình asm
+## 2. Code chương trình asm
 
 ```
 Task: Chương trình asm: cộng 2 số tự nhiên lớn (tràn thanh ghi, số hạng trong đoạn [0, 2^64 - 1] với 32 bit, [0, 2^128 - 1] với 64 bit)
