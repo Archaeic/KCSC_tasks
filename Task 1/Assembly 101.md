@@ -47,10 +47,10 @@ push: push sẽ đẩy một giá trị vào stack, khi push thì ESP = ESP - 0x
 pop: pop sẽ lấy giá trị trên cùng của stack ra, khi pop thì ESP = ESP + 0x4
 vì vậy càng lên cao, địa chỉ sẽ càng giảm và ngược lại.
 #### Endianess
-Endianness là cách sắp xếp thứ tự byte
-vd: 0A0B0C0D
-Little endian sẽ sắp xếp như sau: 0D 0C 0B 0A
-Big endian sẽ sắp xếp như sau: 0A 0B 0C 0D
+Endianness là cách sắp xếp thứ tự byte                                                                                                                             
+vd: 0A0B0C0D                                                                                                                                                    
+Little endian sẽ sắp xếp như sau: 0D 0C 0B 0A                                                                                                                    
+Big endian sẽ sắp xếp như sau: 0A 0B 0C 0D                                                                                                                        
 
 
 #### Calling convention
