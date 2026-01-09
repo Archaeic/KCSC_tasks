@@ -16,8 +16,7 @@ EBP và BP: thường dùng để tham chiếu đến các biến tham số sử
 các lệnh cơ bản:
 
 `mov eax, 0x1` ; eax = 0x1                                                                                                                                         
-`cmp eax, ebx` ; so sánh eax ebx
-d
+`cmp eax, ebx` ; so sánh eax ebx                                                                                                                                   
 `test eax, ebx`; thử eax ebx 
 `jne`      ; nhảy nếu không bằng 
 `je`         ; nhảy nếu bằng
