@@ -162,5 +162,6 @@ start: ;bắt đầu ct
     
 end start ;kết thúc ct     
 ```
-<img width="358" height="143" alt="image" src="https://github.com/user-attachments/assets/8cfce4e1-4de9-4b3a-babc-b68c875ade67" />
+<img width="325" height="108" alt="image" src="https://github.com/user-attachments/assets/2704c35d-8f88-4b7f-b0f7-0a673f2f9df3" />
+
 
