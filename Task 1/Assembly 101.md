@@ -108,12 +108,12 @@ Ngoài ra còn có nhiều calling conventions:`__fastcall`, `__clrcall`, `__thi
 
 ## 2. Code chương trình asm
 
-```
-Task: Chương trình asm: cộng 2 số tự nhiên lớn (tràn thanh ghi, số hạng trong đoạn [0, 2^64 - 1] với 32 bit, [0, 2^128 - 1] với 64 bit)
+
+#### Task: Chương trình asm: cộng 2 số tự nhiên lớn (tràn thanh ghi, số hạng trong đoạn [0, 2^64 - 1] với 32 bit, [0, 2^128 - 1] với 64 bit)
 - Cho phép nhập 2 số (Thêm msg ví dụ: "Nhập số thứ nhất: ")
 - Tính cộng
 - In kết quả
-```
+
 Bài này mình sẽ dùng cờ CF, cờ này được sử dụng để lưu trữ trạng thái dư ra của phép tính toán, nếu kết quả của phép tính toán vượt quá kích thước của thanh ghi thì bit CF sẽ được thiết lập thành 1.
 
 Bản chất của tràn số 
