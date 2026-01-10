@@ -115,53 +115,78 @@ Ngoài ra còn có nhiều calling conventions:`__fastcall`, `__clrcall`, `__thi
 - Tính cộng
 - In kết quả
 
-Bài này mình sẽ dùng cờ CF, cờ này được sử dụng để lưu trữ trạng thái dư ra của phép tính toán, nếu kết quả của phép tính toán vượt quá kích thước của thanh ghi thì bit CF sẽ được thiết lập thành 1.
-
-Bản chất của tràn số 
-vd: max là 10 thì mỗi thanh ghi max nó là 10, lo= 10, khi mà add thêm 1 vào thì lo= 0 (vì đã max rồi), và chuyển sang thanh ghi thứ hai hi= 1
+muốn ra đc 64 bit trong với 32 bit thì mình cộng 2 phần 32 bit lại
 
 IDE em sử dụng là MASM32 ([tutorial](https://www.youtube.com/watch?v=uJgkKhQa4kM))
 
 ```
-include \masm32\include\masm32rt.inc
+.386
+.model flat, stdcall
+option casemap:none
 
+include \masm32\include\kernel32.inc
+include \masm32\include\msvcrt.inc
+includelib \masm32\lib\kernel32.lib
+includelib \masm32\lib\msvcrt.lib
 
 .data
-m   dd 0 ;khai báo biến giống như kiểu 'int m' trong c
-n   dd 0 
-lo  dd 0
-hi  dd 0
+    msg1 db "Nhap so thu 1 : ", 0
+    msg2 db "Nhap so thu 2 : ", 0
+    msg3 db "kq = %I64u", 13, 10, 0
+    fmt  db "%I64u", 0 ;I64u giong llu
+
+    m dq 0   ;khai bao bien giong kieu 'int m' trong c, kq= 64bit
+    n dq 0
+    kq dq 0
 
 .code
-start: ;bắt đầu ct
-    invoke AllocConsole ;tạo console để nhìn
-    
-    ;nhập
-    mov m, sval(input("nhap so thu nhat = ")) ;input("...") nhập số vào, còn sval là chuyển số đó sang 32 bit, rồi mov m để lưu nó vào m
-    mov n, sval(input("nhap so thu hai = ")) 
+start:
+     
+    ;nhap so 1
+    push offset msg1 ;lay dia chi msg1 roi day msg1 len stack
+    call crt_printf  ;goi ham in
+    add esp, 4       ;don stack, 1 push 4 byte
 
-    ;cộng
-    mov eax, m ;đưa m vào eax
-    add eax, n ;cộng n vào eax, tức eax = m + n 
-    mov lo, eax ;lưu eax = m + n vào lo
-
-    mov edx, 0
-    adc edx, 0        ; adc thì giống lệnh add nhưng có thêm carry flag, tức edx = edx + 0 + CF
-    mov hi, edx       ; lưu hi
-
-    ;in kết quả
-    print chr$("hi = ") ;in ra 'hi='
-    print str$(hi) ;in ra hi
-    print chr$(13,10) ;xuống dòng
-    print chr$("lo = ")
-    print str$(lo)
-    print chr$(13,10)
-    inkey ;cho nhập số
+    push offset m    ;day dia chi m len stack
+    push offset fmt  ;push dia chi fmt tuong tu voi scanf trong c
+    call crt_scanf   ;goi ham nhap
+    add esp, 8       ;don stack, 2 push 8 byte
     
-    exit ;thoát ct
-    
-end start ;kết thúc ct     
+    ;nhap so 2
+    push offset msg2
+    call crt_printf
+    add esp, 4
+
+    push offset n
+    push offset fmt
+    call crt_scanf
+    add esp, 8
+
+    ;cong
+    mov eax, dword ptr [m]     ;lay m sang eax (lo)
+    mov edx, dword ptr [m+4]   ;lay m nhung lay bat dau tu dia chi m+4 (hi)
+
+    add eax, dword ptr [n]     ;eax = m.lo + n.lo
+    adc edx, dword ptr [n+4]   ;edx = m.hi + n.hi + cf
+
+    ;luu ket qua
+    mov dword ptr [kq], eax    ;lo
+    mov dword ptr [kq+4], edx  ;hi
+
+    ;in kq
+    push dword ptr [kq+4] ;push hi
+    push dword ptr [kq]   ;push lo
+    push offset msg3      ;push kq 
+    call crt_printf       ;goi ham print
+    add esp, 12           ;don stack, 12 boi vi push 3 lan 4x3
+
+    push 0
+    call ExitProcess
+end start
+
 ```
-<img width="325" height="108" alt="image" src="https://github.com/user-attachments/assets/2704c35d-8f88-4b7f-b0f7-0a673f2f9df3" />
+<img width="382" height="299" alt="image" src="https://github.com/user-attachments/assets/d1c47e4a-59d7-4152-a333-ef74fcbe2b2e" />
+
+
 
 
