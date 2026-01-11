@@ -41,12 +41,12 @@ ngoài ra còn có các **flags** như:
 
 #### Stack
 
-Stack hoạt động trên nguyên tắc LIFO(last in, first out), tức cái nào vào sau thì ra trước.
-ESP (Stack Pointer): Trỏ đến đỉnh ngăn xếp hiện tại.
-EBP (Base Pointer): Trỏ đến đáy của khung ngăn xếp hiện tại trong các hàm, giúp quản lý các tham số và biến cục bộ của hàm.
-push: push sẽ đẩy một giá trị vào stack, khi push thì ESP = ESP - 0x4 (đối với 64-bit sẽ là 0x8)
-pop: pop sẽ lấy giá trị trên cùng của stack ra, khi pop thì ESP = ESP + 0x4
-vì vậy càng lên cao, địa chỉ sẽ càng giảm và ngược lại.
+Stack hoạt động trên nguyên tắc LIFO(last in, first out), tức cái nào vào sau thì ra trước.                                                                        
+ESP (Stack Pointer): Trỏ đến đỉnh ngăn xếp hiện tại.                                                                                                            
+EBP (Base Pointer): Trỏ đến đáy của khung ngăn xếp hiện tại trong các hàm, giúp quản lý các tham số và biến cục bộ của hàm.                                        
+push: push sẽ đẩy một giá trị vào stack, khi push thì ESP = ESP - 0x4 (đối với 64-bit sẽ là 0x8)                                                                   
+pop: pop sẽ lấy giá trị trên cùng của stack ra, khi pop thì ESP = ESP + 0x4                                                                                        
+vì vậy càng lên cao, địa chỉ sẽ càng giảm và ngược lại.                                                                                                            
 #### Endianess
 Endianness là cách sắp xếp thứ tự byte                                                                                                                             
 vd: 0A0B0C0D                                                                                                                                                    
