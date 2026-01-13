@@ -189,4 +189,138 @@ end start
 
 
 
+Bổ sung thêm: không được dùng lib, cộng nhớ
+ps: không dùng lib nên e sang nasm luôn e dùng masm vì nó có call sẵn cho dễ thở 😔
+
+```
+section .data
+    msg1    db "Nhap so thu 1: "   ; nhập số thứ nhất
+    len1    equ $ - msg1           ; độ dài
+
+    msg2    db "Nhap so thu 2: "   
+    len2    equ $ - msg2         
+
+    msgkq   db "KQ: "        
+    lenkq   equ $ - msgkq         
+
+section .bss
+    num1    resb 100               ; buffer chứa số 1
+    num2    resb 100               
+    buf     resb 101               
+
+section .text
+global _start
+_start:
+
+;in nhập chữ 1
+    mov rax, 1                     ; syscall 1 = write
+    mov rdi, 1                     ; fd = 1 = stdout
+    mov rsi, msg1                  ; địa chỉ chuỗi cần in
+    mov rdx, len1                  ; số byte cần in
+    syscall                        ; gọi kernel
+
+;đọc số 1
+    xor rax, rax                   ; rax = 0 = syscall read
+    xor rdi, edi                   ; fd = 0 → stdin
+    mov rsi, num1                  ; buffer nhận dữ liệu
+    mov rdx, 100                   ; đọc tối đa 100 byte
+    syscall                        ; rax = số byte đọc được
+
+    dec rax                        ; bỏ '\n'
+    mov r12, rax                   ; r12 = độ dài số 1
+
+;in nhập chữ 2
+    mov rax, 1                    
+    mov rdi, 1                   
+    mov rsi, msg2                  
+    mov rdx, len2               
+    syscall
+
+;đọc số 2
+    xor rax, rax                 
+    xor rdi, rdi                  
+    mov rsi, num2                
+    mov rdx, 100                
+    syscall
+
+    dec rax                  
+    mov r13, rax                   ; r13 = độ dài số 2
+
+    lea rsi, [r12-1]               ; rsi = chữ số cuối của num1
+    lea rdi, [r13-1]               ; rdi = chữ số cuối của num2
+    xor r10, r10                   ; r10 = nhớ = 0
+    xor rcx, rcx                   ; rcx = kq
+
+;loop
+
+.add:
+    xor rax, rax                   ; rax = 0
+    add rax, r10d                  ; cộng nhớ từ loop trước
+    xor r10, r10                   ; xóa nhớ cũ
+
+    cmp rsi, 0                     ; còn num1 không?
+    jl .n1                         ; nếu hết bỏ qua
+    movzx rdx, byte [num1+rsi]     ; lấy ký tự ASCII
+    sub rdx, '0'                   ; chuyển chữ qua số
+    add rax, rdx                   ; cộng vào tổng
+    dec rsi                        ; lùi sang chữ số tiếp theo
+
+.n1:
+    cmp rdi, 0                   
+    jl .calc                       ; nếu hết sang calc
+    movzx rdx, byte [num2+rdi]     
+    sub edx, '0'                  
+    add eax, edx                  
+    dec rdi                      
+
+.calc:
+    xor rdx, rdx                   ; chuẩn bị chia
+    mov rbx, 10                    ; chia cho 10
+    div rbx                        ; rax = thương, rdx = dư
+
+    mov r10, rax                   ; lưu nhớ cho vòng sau
+    add dl, '0'                  
+    push rdx                       ; đẩy vào stack
+    inc rcx                        ; tăng
+
+    cmp rsi, 0                     ; so sánh num1 
+    jge .add                       ; jump if greater
+    cmp rdi, 0                     ; so sánh num2
+    jge .add
+    test r10, r10                  ; ktra còn nhớ k
+    jnz .add
+
+;pop
+
+    mov rbx, buf                   ; rbx = đầu buffer kết quả
+    mov r14, rcx                   ; r14 = độ dài kết quả
+
+.pop:
+
+    pop rax                        ; lấy chữ số đúng thứ tự
+    mov [rbx], al                  ; ghi vào buffer
+    inc rbx                        ; sang ô tiếp theo
+    loop .pop                      ; lặp rcx lần
+
+;in kq
+    mov rax, 1                     ; write
+    mov rdi, 1                     ; stdout
+    mov rsi, msgkq                 ; "Tong la:"
+    mov rdx, lenkq
+    syscall
+
+    mov rax, 1                     ; write
+    mov rdi, 1
+    mov rsi, buf                   ; kết quả
+    mov rdx, r14                   ; độ dài 
+    syscall
+
+;thoát
+    mov rax, 60                    ; syscall exit
+    xor rdi, edi                   ; exit code = 0
+    syscall
+```
+
+
+
 
