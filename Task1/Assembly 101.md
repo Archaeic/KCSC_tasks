@@ -189,7 +189,7 @@ end start
 
 
 
-Bổ sung thêm: không được dùng lib, cộng nhớ
+Bổ sung thêm: không được dùng lib, cộng nhớ                                                                                                                        
 ps: không dùng lib nên e sang nasm luôn e dùng masm vì nó có call sẵn cho dễ thở 😔
 
 ```
