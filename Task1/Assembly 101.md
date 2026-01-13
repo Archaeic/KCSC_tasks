@@ -320,7 +320,7 @@ _start:
     xor rdi, edi                   ; exit code = 0
     syscall
 ```
-chạy thử
+chạy thử                                                                                                                                                            
 <img width="494" height="72" alt="image" src="https://github.com/user-attachments/assets/dbe7ac41-195c-43c7-907d-ced9260005d3" />
 
 
