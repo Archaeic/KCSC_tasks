@@ -1,191 +1,227 @@
-# Task 1: Assembly 101
+# Task 2
 
-Nguồn học: [1](https://www.youtube.com/watch?v=bhTGgzRsn1k&t=3416s), [2](https://adminvietnam.org/kien-thuc-co-ban-ve-assembly/4463/)
-## 1. Lý thuyết 
-
-#### Registers
-
-EAX: thanh ghi tích lũy. Thường được dùng trong nhập xuất và các lệnh tính toán số học.                                                                            
-EBX: thanh ghi cơ sở. Thường được dùng để đánh dấu địa chỉ, lưu địa chỉ bắt đầu của 1 mảng.                                                                        
-ECX: thanh ghi đếm. Thường được dùng trong vòng lặp, đếm số lần lặp.                                                                                               
-EDX: thanh ghi dữ liệu. Thường được sử dụng trong nhập xuất dữ liệu như EAX.                                                                                    
-EIP và IP: trỏ tới địa chỉ chứa lệnh tiếp theo sẽ được thực thi.                                                                                                
-ESP và SP: trỏ tới đỉnh hiện thời của stack.                                                                                                                       
-EBP và BP: thường dùng để tham chiếu đến các biến tham số sử dụng trong chương trình con.   
-
-#### Instructions
-các lệnh cơ bản:
-
-`mov eax, 0x1` ; eax = 0x1                                                                                                                                         
-`cmp eax, ebx` ; so sánh eax ebx                                                                                                                                   
-`test eax, ebx`; thử eax ebx                                                                                                                                     
-`jne`      ; nhảy nếu không bằng                                                                                                                                   
-`je`         ; nhảy nếu bằng
-`jump`         ; nhảy tới địa chỉ                                                                                                                                  
-`add eax, ebx` ; eax = eax + ebx                                                                                                                                   
-`sub eax, ebx` ; eax = eax - ebx                                                                                                                                
-`inc eax`      ; eax = eax + 1                                                                                                                                    
-`dec eax`      ; eax = eax -1                                                                                                                                     
-`imul eax, 0x3`; eax = eax * 0x3                                                                                                                                
-`idiv eax, 0x6`; eax = eax / 0x6                                                                                                                                
-`and eax, 0x1` ; eax = eax & 0x1                                                                                                                                
-`or eax, 0x1`  ; eax = eax | 0x1                                                                                                                                
-`xor eax, 0x1` ; eax = eax ^ 0x1                                                                                                                                
-`not eax `    ; eax = ~eax                                                                                                                                         
-`shl eax, 0x1` ; eax = eax << 0x1 (nhân 2)                                                                                                                        
-`shr eax, 0x1` ; eax = eax >> 0x1 (chia 2)                                                                                                                        
-
-ngoài ra còn có các **flags** như:
-
-![image](https://hackmd.io/_uploads/S1tFOg3EWl.png)
-
-#### Stack
-
-Stack hoạt động trên nguyên tắc LIFO(last in, first out), tức cái nào vào sau thì ra trước.
-ESP (Stack Pointer): Trỏ đến đỉnh ngăn xếp hiện tại.
-EBP (Base Pointer): Trỏ đến đáy của khung ngăn xếp hiện tại trong các hàm, giúp quản lý các tham số và biến cục bộ của hàm.
-push: push sẽ đẩy một giá trị vào stack, khi push thì ESP = ESP - 0x4 (đối với 64-bit sẽ là 0x8)
-pop: pop sẽ lấy giá trị trên cùng của stack ra, khi pop thì ESP = ESP + 0x4
-vì vậy càng lên cao, địa chỉ sẽ càng giảm và ngược lại.
-#### Endianess
-Endianness là cách sắp xếp thứ tự byte                                                                                                                             
-vd: 0A0B0C0D                                                                                                                                                    
-Little endian sẽ sắp xếp như sau: 0D 0C 0B 0A                                                                                                                    
-Big endian sẽ sắp xếp như sau: 0A 0B 0C 0D                                                                                                                        
+1. Chương trình asm: thuật toán mã hóa RC4                                                                                                                        
+Chạy được và phải đúng
+Input: Plain Text + Key                                                                                                                                            
+Output: Hex                                                                                                                                                        
+Giải thích code rõ ràng
+  
+3. Write up challenge EZsudocu + hidden
 
 
-#### Calling convention
+## Code 
 
-Quy ước chung: 
+[RC4](Task2/rc4.asm)
 
-![image](https://hackmd.io/_uploads/ryRmv7CEZg.png)
+<img width="364" height="94" alt="image" src="https://github.com/user-attachments/assets/866a5ffb-5fdf-466c-86d8-ffe50b85ea8d" />
 
 
+## Write up
 
-**Cdecl**
-Cho chương trình mẫu:
-```c 
-#include<stdio.h>
+### EZsudoku
+chạy thử: 
 
-int sum(int a, int b){
-    return a + b;
+<img width="326" height="268" alt="image" src="https://github.com/user-attachments/assets/67dfb23b-6ee6-4bff-948e-5a554ce02b3c" />
+
+trước hết có sudoku thì cứ giải thử rồi để đó :)
+
+dùng script có [sẵn](https://www.geeksforgeeks.org/dsa/sudoku-backtracking-7/) 
+
+<img width="197" height="282" alt="image" src="https://github.com/user-attachments/assets/746d2057-e3fd-496e-b79b-212567bff759" />
+
+#### Chương trình : 
+```c
+int __cdecl main(int argc, const char **argv, const char **envp)
+{
+  int v3; // eax
+  int v4; // eax
+  unsigned int v5; // esi
+  unsigned int v6; // kr00_4
+  void **v7; // ecx
+  int v8; // edx
+  size_t v9; // edi
+  void **v10; // esi
+  void **v11; // eax
+  __int128 v12; // xmm0
+  __int64 v13; // xmm1_8
+  void *v14; // ecx
+  void *v15; // ecx
+  void *v16; // ecx
+  int v18; // [esp+20h] [ebp-1B4h]
+  void *v19[4]; // [esp+28h] [ebp-1ACh] BYREF
+  int v20; // [esp+38h] [ebp-19Ch]
+  unsigned int v21; // [esp+3Ch] [ebp-198h]
+  __int64 v22; // [esp+40h] [ebp-194h]
+  void *Src; // [esp+48h] [ebp-18Ch]
+  size_t Size; // [esp+4Ch] [ebp-188h]
+  void *Block[4]; // [esp+50h] [ebp-184h] BYREF
+  size_t v26[2]; // [esp+60h] [ebp-174h]
+  _OWORD v27[20]; // [esp+68h] [ebp-16Ch] BYREF
+  int v28; // [esp+1A8h] [ebp-2Ch]
+  char v29[24]; // [esp+1ACh] [ebp-28h] BYREF
+  int v30; // [esp+1D0h] [ebp-4h]
+
+  v28 = 0;
+  strcpy(v29, ";e!kazw^e<i6]4o\\l[Wh4d7");
+  v27[0] = xmmword_2801E0;
+  v27[1] = 0;
+  v27[2] = xmmword_280260;
+  v27[3] = xmmword_2801C0;
+  v27[4] = xmmword_280270;
+  v27[5] = xmmword_280250;
+  v27[6] = xmmword_280190;
+  v27[7] = xmmword_2801B0;
+  v27[8] = xmmword_2801D0;
+  v27[9] = 0;
+  v27[10] = xmmword_280230;
+  v27[11] = 0;
+  v27[12] = xmmword_280180;
+  v27[13] = xmmword_2801A0;
+  v27[14] = xmmword_280180;
+  v27[15] = xmmword_280240;
+  v27[16] = xmmword_280220;
+  v27[17] = xmmword_280200;
+  v27[18] = xmmword_2801F0;
+  v27[19] = xmmword_280210;
+  v3 = sub_2540B0(&dword_283F50, "This is your challenge: ");
+  sub_254370(v3);
+  sub_251D60(v27);
+  v4 = sub_2540B0(&dword_283F50, "...and here is your flag: ");
+  sub_254370(v4);
+  v26[0] = 0;
+  v26[1] = 15;
+  LOBYTE(Block[0]) = 0;
+  sub_252F30(Block, (void *)&::Src, 0);
+  v5 = 0;
+  v30 = 0;
+  HIDWORD(v22) = 0;
+  v6 = strlen(v29);
+  if ( v6 )
+  {
+    do
+    {
+      v20 = 0;
+      v21 = 15;
+      LOBYTE(v19[0]) = 0;
+      sub_252DF0(v19, 1u, v29[v5] ^ *((_BYTE *)v27 + 40 * ((int)v5 % 9)));
+      LOBYTE(v30) = 1;
+      v7 = Block;
+      if ( v26[1] >= 0x10 )
+        v7 = (void **)Block[0];
+      v8 = v20;
+      v9 = v26[0];
+      Src = v7;
+      if ( v26[0] > v21 - v20 )
+      {
+        LOBYTE(v18) = 0;
+        v11 = (void **)sub_255370(v19, v26[0], v18, (int)v7, (int)v7, v26[0]);
+      }
+      else
+      {
+        v10 = v19;
+        v20 += v26[0];
+        if ( v21 >= 0x10 )
+          v10 = (void **)v19[0];
+        if ( (void **)((char *)v7 + v26[0]) <= v10 || v7 > (void **)((char *)v10 + v8) )
+        {
+          Size = v26[0];
+        }
+        else if ( v10 > v7 )
+        {
+          Size = (char *)v10 - (char *)v7;
+        }
+        else
+        {
+          Size = 0;
+        }
+        memmove_0((char *)v10 + v26[0], v10, v8 + 1);
+        memmove(v10, Src, Size);
+        memmove((char *)v10 + Size, (char *)Src + Size + v9, v9 - Size);
+        v5 = HIDWORD(v22);
+        v11 = v19;
+      }
+      v12 = *(_OWORD *)v11;
+      v13 = *((_QWORD *)v11 + 2);
+      v11[4] = 0;
+      v11[5] = (void *)15;
+      *(_BYTE *)v11 = 0;
+      v22 = v13;
+      if ( v26[1] >= 0x10 )
+      {
+        v14 = Block[0];
+        if ( v26[1] + 1 >= 0x1000 )
+        {
+          v14 = (void *)*((_DWORD *)Block[0] - 1);
+          if ( (unsigned int)((char *)Block[0] - (char *)v14 - 4) > 0x1F )
+            goto LABEL_29;
+        }
+        sub_257991(v14);
+        v13 = v22;
+      }
+      LOBYTE(v30) = 0;
+      *(_QWORD *)v26 = v13;
+      *(_OWORD *)Block = v12;
+      if ( v21 >= 0x10 )
+      {
+        v15 = v19[0];
+        if ( v21 + 1 >= 0x1000 )
+        {
+          v15 = (void *)*((_DWORD *)v19[0] - 1);
+          if ( (unsigned int)((char *)v19[0] - (char *)v15 - 4) > 0x1F )
+            goto LABEL_29;
+        }
+        sub_257991(v15);
+      }
+      HIDWORD(v22) = ++v5;
+    }
+    while ( v5 < v6 );
+  }
+  sub_2550E0(v26[0]);
+  if ( v26[1] >= 0x10 )
+  {
+    v16 = Block[0];
+    if ( v26[1] + 1 >= 0x1000 )
+    {
+      v16 = (void *)*((_DWORD *)Block[0] - 1);
+      if ( (unsigned int)((char *)Block[0] - (char *)v16 - 4) > 0x1F )
+LABEL_29:
+        _invalid_parameter_noinfo_noreturn();
+    }
+    sub_257991(v16);
+  }
+  return 0;
 }
-
-int main(){
-    int c;
-    c = sum(3, 6);
-    return 0;
-}
 ```
-cho lên IDA thì đây là dạng của call cdecl
 
-![image](https://hackmd.io/_uploads/Syy0zXh4Wg.png)
+này nó hardcode vào luôn :d
+`strcpy(v29, ";e!kazw^e<i6]4o\\l[Wh4d7");`
 
+đây là dòng tạo flag
 
-chương trình thực hiện mov 2 giá trị vào stack theo nguyên tắc ngược lại rồi sau đó gọi hàm sum
+`sub_252DF0(v19, 1u, v29[v5] ^ *((_BYTE *)v27 + 40 * ((int)v5 % 9)));`
 
-![image](https://hackmd.io/_uploads/SybzXX2N-l.png)
+v29 thực hiện XOR với v27, v27 sẽ là 9 byte của sudoku.  `((int)v5 % 9))` , ở đây `%9` là để loop key 9 lần để XOR tại cái string mã hóa nó dài hơn key 
+code giải 
+```py
+chall = b";e!kazw^e<i6]4o\l[Wh4d7"
 
-vào hàm sum 
+key =[8, 4, 5, 2, 4, 9, 3, 1, 2]
 
-![image](https://hackmd.io/_uploads/ry6TVQhNbx.png)
-
-thì ta có thể thấy nó đang push giá trị `_main+22` vào stack
-
-![image](https://hackmd.io/_uploads/ByoISQnV-x.png)
-
-vào `_main+22` thì nó dẫn tới cái này thì nó nghĩa là địa chỉ của lệnh kế tiếp sau call sum                                                                        
-vậy thì cách hoạt động của nó theo thứ tự như sau:                                                                                                                
-B1: `push ebp` để lưu ebp vào stack                                                                                                                                
-B2: `move ebp, esp`, di chuyển esp vào ebp => thiết lập stack mới                                                                                                
-B3: `pop ebp` lấy lại ebp cũ                                                                                                                                     
-B4: `ret` trở về hàm call                                                                                                                                        
-
-***Stdcall***
-
-__stdcall chủ yếu được API Windows sử dụng và nhỏ gọn hơn __cdecl một chút, nhưng thực chất thì em thấy 2 cái này cũng tựa nhau.
-
-Ngoài ra còn có nhiều calling conventions:`__fastcall`, `__clrcall`, `__thiscall` và `__vectorcall`. Một số cái lỗi thời như `__pascal`, `__fortran`, `__syscall`.
-
-## 2. Code chương trình asm
-
-
-#### Task: Chương trình asm: cộng 2 số tự nhiên lớn (tràn thanh ghi, số hạng trong đoạn [0, 2^64 - 1] với 32 bit, [0, 2^128 - 1] với 64 bit)
-- Cho phép nhập 2 số (Thêm msg ví dụ: "Nhập số thứ nhất: ")
-- Tính cộng
-- In kết quả
-
-muốn ra đc 64 bit trong với 32 bit thì mình cộng 2 phần 32 bit lại
-
-IDE em sử dụng là MASM32 ([tutorial](https://www.youtube.com/watch?v=uJgkKhQa4kM))
-
+out = bytes(chall[i] ^ key[i % 9]
+    for i in range(len(chall)))
+print(out.decode())
 ```
-.386
-.model flat, stdcall
-option casemap:none
+mình đã thử hết 9 byte của tất cả các hàng, cột, xong tới đường chéo mới ra được flag 
 
-include \masm32\include\kernel32.inc
-include \masm32\include\msvcrt.inc
-includelib \masm32\lib\kernel32.lib
-includelib \masm32\lib\msvcrt.lib
+<img width="259" height="38" alt="image" src="https://github.com/user-attachments/assets/3b7151c3-f081-4b62-bfcf-e355be5c1e06" />
 
-.data
-    msg1 db "Nhap so thu 1 : ", 0
-    msg2 db "Nhap so thu 2 : ", 0
-    msg3 db "kq = %I64u", 13, 10, 0
-    fmt  db "%I64u", 0 ;I64u giong llu
 
-    m dq 0   ;khai bao bien giong kieu 'int m' trong c, kq= 64bit
-    n dq 0
-    kq dq 0
 
-.code
-start:
-     
-    ;nhap so 1
-    push offset msg1 ;lay dia chi msg1 roi day msg1 len stack
-    call crt_printf  ;goi ham in
-    add esp, 4       ;don stack, 1 push 4 byte
 
-    push offset m    ;day dia chi m len stack
-    push offset fmt  ;push dia chi fmt tuong tu voi scanf trong c
-    call crt_scanf   ;goi ham nhap
-    add esp, 8       ;don stack, 2 push 8 byte
-    
-    ;nhap so 2
-    push offset msg2
-    call crt_printf
-    add esp, 4
 
-    push offset n
-    push offset fmt
-    call crt_scanf
-    add esp, 8
 
-    ;cong
-    mov eax, dword ptr [m]     ;lay m sang eax (lo)
-    mov edx, dword ptr [m+4]   ;lay m nhung lay bat dau tu dia chi m+4 (hi)
 
-    add eax, dword ptr [n]     ;eax = m.lo + n.lo
-    adc edx, dword ptr [n+4]   ;edx = m.hi + n.hi + cf
 
-    ;luu ket qua
-    mov dword ptr [kq], eax    ;lo
-    mov dword ptr [kq+4], edx  ;hi
-
-    ;in kq
-    push dword ptr [kq+4] ;push hi
-    push dword ptr [kq]   ;push lo
-    push offset msg3      ;push kq 
-    call crt_printf       ;goi ham print
-    add esp, 12           ;don stack, 12 boi vi push 3 lan 4x3
-
-    push 0
-    call ExitProcess
-end start
-
-```
-<img width="382" height="299" alt="image" src="https://github.com/user-attachments/assets/d1c47e4a-59d7-4152-a333-ef74fcbe2b2e" />
 
 
 
