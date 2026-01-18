@@ -267,7 +267,7 @@ __int64 __fastcall sub_1272(unsigned int a1, _DWORD *a2)
   return 0;
 }
 ```
-nhưng khi chuyển sang view asm thì nó bị thiếu rất nhiều code
+nhưng khi chuyển sang view asm thì nó bị thiếu rất nhiều code                                                                                                      
 vd: 
 
 <img width="1234" height="257" alt="image" src="https://github.com/user-attachments/assets/e6308e1c-d867-48c5-b6cb-b0cef1d1901c" />
@@ -283,8 +283,8 @@ pseudo code:
 eax = var_14 ^ var_c (sub_124F) ^ var_8(sub_122C)
 eax = sub_1209
 if eax & 1 
-   jump to loc_136E (chẵn)
-else nhảy sang lẻ
+   jump to loc_136E
+else qua nhánh còn lại
 ```
 
 <img width="389" height="643" alt="image" src="https://github.com/user-attachments/assets/f83aa860-e7b5-47e3-a9cb-6bcaa25a9775" />
