@@ -215,6 +215,144 @@ mình đã thử hết 9 byte của tất cả các hàng, cột, xong tới đ�
 
 <img width="259" height="38" alt="image" src="https://github.com/user-attachments/assets/3b7151c3-f081-4b62-bfcf-e355be5c1e06" />
 
+### hidden
+
+#### Chương trình
+```c
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  unsigned __int64 i; // [rsp+18h] [rbp-58h]
+  char *s; // [rsp+20h] [rbp-50h]
+  size_t n; // [rsp+28h] [rbp-48h]
+  unsigned int *dest; // [rsp+38h] [rbp-38h]
+  char v8[24]; // [rsp+40h] [rbp-30h] BYREF
+  unsigned __int64 v9; // [rsp+58h] [rbp-18h]
+
+  v9 = __readfsqword(0x28u);
+  strcpy(v8, "AlpacaHackRound8");
+  if ( a1 > 1 )
+  {
+    s = a2[1];
+    n = strlen(s);
+    dest = (unsigned int *)calloc((n + 3) >> 2, 4u);
+    memcpy(dest, s, n);
+    for ( i = 0; i < (n + 3) >> 2; ++i )
+      dest[i] = sub_1272(dest[i], v8);
+    if ( !memcmp(dest, &unk_4040, 4 * qword_4020) )
+      puts("congratz");
+    else
+      puts("wrong");
+    return 0;
+  }
+  else
+  {
+    printf("usage: %s <input>\n", *a2);
+    return 0;
+  }
+}
+```
+
+ở đây chương trình thực hiện copy input vào dest, nhưng ở đây nó đang đọc input theo 32-bit và nó gom input mỗi 4 kí tự. Sau đó mã hóa nó ở `dest[i] = sub_1272(dest[i], v8);` 
+vào `sub_1272`
+```c 
+__int64 __fastcall sub_1272(unsigned int a1, _DWORD *a2)
+{
+  sub_124F((unsigned int)(__ROL4__(*a2, 5) + __ROR4__(a2[1], 3)));
+  sub_122C((unsigned int)(__ROR4__(a2[2], 3) - __ROL4__(a2[3], 5)));
+  sub_1209(a1);
+  *a2 ^= __ROR4__(0, 13);
+  a2[1] ^= __ROR4__(0, 15);
+  a2[2] ^= __ROL4__(0, 13);
+  a2[3] ^= __ROL4__(0, 11);
+  return 0;
+}
+```
+nhưng khi chuyển sang view asm thì nó bị thiếu rất nhiều code
+vd: 
+
+<img width="1234" height="257" alt="image" src="https://github.com/user-attachments/assets/e6308e1c-d867-48c5-b6cb-b0cef1d1901c" />
+
+<img width="1231" height="593" alt="image" src="https://github.com/user-attachments/assets/81d1e37d-123a-4e0f-a2c9-94c60f6282f9" />
+
+đây là dạng bài anti decompile vậy thì giờ mình dịch từng đoạn asm bị thiếu ra
+
+<img width="306" height="117" alt="image" src="https://github.com/user-attachments/assets/7b659ed1-f194-47fa-b46a-750abce8005e" />
+
+pseudo code: 
+```
+eax = var_14 ^ var_c (sub_124F) ^ var_8(sub_122C)
+eax = sub_1209
+if eax & 1 
+   jump to loc_136E (chẵn)
+else nhảy sang lẻ
+```
+
+<img width="389" height="643" alt="image" src="https://github.com/user-attachments/assets/f83aa860-e7b5-47e3-a9cb-6bcaa25a9775" />
+
+đoạn trái thì không khác gì đoạn phải chỉ có điều là ngược lại 
+
+kết hợp cả hai ta được đoạn psuedo code của sub_1272
+
+``` py
+ v1 = (rol(k0, 5) + ror(k1, 3))
+ v2 = (ror(k2, 3) - rol(k3, 5))
+    p  = ( c ^ v1 ^ v2 )
+     if c & 1:
+        k0 ^= rol(v2, 11)
+        k1 ^= rol(v2, 13)
+        k2 ^= ror(v1, 15)
+        k3 ^= ror(v1, 13)
+     else:
+        k0 ^= ror(v2, 13)
+        k1 ^= ror(v2, 15)
+        k2 ^= rol(v1, 13)
+        k3 ^= rol(v1, 11)
+```
+bây giờ mình ra lại main phân tích tiếp , `if ( !memcmp(dest, &unk_4040, 4 * qword_4020) )` ở đoạn này nó đang so sánh dist với unk và check len với qword 
+đúng thì in congratz sai thì in wrong                                                                                                                              
+qword = 1Bh = 27                                                                                                                                                 
+unk = [DC 86 1A 9A DD 93 9B 35 D3 74 DA EE E8 5A 3C C5 1C 64 33 47 D2 3B 28 F3 CC 5A 48 8B 74 0C 4B 87 38 D6 80 40 51 E6 4A 27 A1 73 52 0F 93 06 54 3D 65 13 FB C8 65 AF D2 67 B3 09 EF 7D 23 A6 76 E5 13 10 13 FF 34 8D AE D0 9C 2C 4D F3 A1 BC 46 2F 98 87 B6 57 1A A2 17 F1 F0 E5 B0 BA 9B 6D B5 A7 AC 6A 5E AC E8 F6 90 D8 B0 A2 99 91]                                                                                                                                                            
+và đây là solver 
+```py
+import struct
+
+hex = "DC 86 1A 9A DD 93 9B 35 D3 74 DA EE E8 5A 3C C5 1C 64 33 47 D2 3B 28 F3 CC 5A 48 8B 74 0C 4B 87 38 D6 80 40 51 E6 4A 27 A1 73 52 0F 93 06 54 3D 65 13 FB C8 65 AF D2 67 B3 09 EF 7D 23 A6 76 E5 13 10 13 FF 34 8D AE D0 9C 2C 4D F3 A1 BC 46 2F 98 87 B6 57 1A A2 17 F1 F0 E5 B0 BA 9B 6D B5 A7 AC 6A 5E AC E8 F6 90 D8 B0 A2 99 91"
+
+def rol(x, r):
+    return ((x << r) | (x >> (32 - r))) & 0xFFFFFFFF
+
+def ror(x, r) :
+    return ((x >> r) | (x << (32 - r))) & 0xFFFFFFFF
+
+ct = struct.unpack("<27I", bytes.fromhex(hex))
+k = list(struct.unpack("<4I", b"AlpacaHackRound8"))
+out = bytearray()
+
+for c in ct:
+    v1 = (rol(k[0], 5) + ror(k[1], 3)) & 0xFFFFFFFF
+    v2 = (ror(k[2], 3) - rol(k[3], 5)) & 0xFFFFFFFF
+    pt = (c ^ v1 ^ v2) & 0xFFFFFFFF
+    out += struct.pack("<I", pt)
+
+    if c & 1:
+        k[0] ^= rol(v2, 11)
+        k[1] ^= rol(v2, 13)
+        k[2] ^= ror(v1, 15)
+        k[3] ^= ror(v1, 13)
+    else:
+        k[0] ^= ror(v2, 13)
+        k[1] ^= ror(v2, 15)
+        k[2] ^= rol(v1, 13)
+        k[3] ^= rol(v1, 11)
+
+print(out.rstrip(b"\x00").decode())
+```
+<img width="1071" height="38" alt="image" src="https://github.com/user-attachments/assets/96e9cc62-09dc-477b-afb6-b1f3b9a12930" />
+<img width="1450" height="73" alt="image" src="https://github.com/user-attachments/assets/947237d0-19fe-4dcd-b06c-2263833866f9" />
+
+
+
+
 
 
 
