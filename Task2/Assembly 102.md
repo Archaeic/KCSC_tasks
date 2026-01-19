@@ -267,6 +267,7 @@ __int64 __fastcall sub_1272(unsigned int a1, _DWORD *a2)
   return 0;
 }
 ```
+
 nhưng khi chuyển sang view asm thì nó bị thiếu rất nhiều code                                                                                                      
 vd: 
 
@@ -276,20 +277,62 @@ vd:
 
 đây là dạng bài anti decompile vậy thì giờ mình dịch từng đoạn asm bị thiếu ra
 
+
+cho input là a 
+
+<img width="367" height="58" alt="image" src="https://github.com/user-attachments/assets/bc7f9338-8a56-4f07-8a1f-c4860cd4562d" />
+
+khi nhảy vào `sub_1272` thì ta có thể thấy input được lưu vào `var_14`
+
+<img width="1519" height="384" alt="image" src="https://github.com/user-attachments/assets/612babcf-27ae-4d46-8618-10d63676dbd2" />
+
+và key được lưu trong `var_20`
+
+<img width="754" height="281" alt="image" src="https://github.com/user-attachments/assets/5f043f6e-17ac-42bc-ad5d-24396649c263" />
+
+
 <img width="306" height="117" alt="image" src="https://github.com/user-attachments/assets/7b659ed1-f194-47fa-b46a-750abce8005e" />
 
 pseudo code: 
 ```
-eax = var_14 ^ var_c (sub_124F) ^ var_8(sub_122C)
+eax ^= in (var_14)
+eax ^= t0 (var_c)
+eax ^= t1 (var_8)
 eax = sub_1209
+out = eax
+
+out = var_14 (input) ^ var_c ^ var_8
 if eax & 1 
    jump to loc_136E
 else qua nhánh còn lại
 ```
 
-<img width="389" height="643" alt="image" src="https://github.com/user-attachments/assets/f83aa860-e7b5-47e3-a9cb-6bcaa25a9775" />
+còn khúc này thì bị mất nhánh bên trái 
 
-đoạn trái thì không khác gì đoạn phải chỉ có điều là ngược lại 
+<img width="1377" height="650" alt="image" src="https://github.com/user-attachments/assets/e1fcdb8b-9f9b-45ea-b833-257f5131d2f5" />
+
+còn đây là từ k[0] chuyển sang k[1], nó đọc xong 4 byte của k[0] rồi nó sang tiếp 4 byte của k[1]
+
+<img width="403" height="422" alt="image" src="https://github.com/user-attachments/assets/52ce99d3-d4c5-4f24-b666-7601764ca8de" />
+
+thì đoạn này có pseudo code rồi, và nhánh trái thì chả khác nhánh phải có điều nó bị đảo ROR và ROL
+
+<img width="1096" height="525" alt="image" src="https://github.com/user-attachments/assets/4a50b5d9-1d76-42a7-926a-d3583f58ef6d" />
+
+vậy nên ta có pseudo của nhánh trái 
+
+```py
+if c & 1:
+        k0 ^= rol(v2, 11)
+        k1 ^= rol(v2, 13)
+        k2 ^= ror(v1, 15)
+        k3 ^= ror(v1, 13)
+     else:
+        k0 ^= ror(v2, 13)
+        k1 ^= ror(v2, 15)
+        k2 ^= rol(v1, 13)
+        k3 ^= rol(v1, 11)
+```
 
 kết hợp cả hai ta được đoạn psuedo code của sub_1272
 
