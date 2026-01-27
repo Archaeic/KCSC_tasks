@@ -5,6 +5,8 @@
 ## Bài chính
 ### 1. F81E37E841D0B2C1D5738A7D60FD98BE
 
+[file](Task3/F81E37E841D0B2C1D5738A7D60FD98BE)
+
 #### Main
 ``` c
 int __cdecl main(int argc, const char **argv, const char **envp)
@@ -65,6 +67,8 @@ print(key)
 
 ### 2. ezjunk
 
+
+
 Đầu tiên thì bài này rất là so với em, nó không cho decomplie, giấu flag rất kĩ, có thêm cả antidebugger. Nhưng theo cái tên "junk" nghĩa là rác vậy nên nó sẽ có điều gì đó liên quan tới code thừa, nặng làm IDA không thể phân biệt và chạy được. 
 VD: 
 
@@ -73,6 +77,24 @@ VD:
 vậy mục đầu tiên chúng ta phải patch chương trình.
 
 <img width="1081" height="647" alt="image" src="https://github.com/user-attachments/assets/29af0b23-59b6-44b2-8fc7-3653097c863d" />
+
+Đầu tiên, mình sẽ vào `sub_401CC0` trước để xem thử function đó là thật hay không.
+
+<img width="435" height="258" alt="image" src="https://github.com/user-attachments/assets/e205f7f1-570c-423b-9f5c-6e6bdb52fac9" />
+
+function là thật nhưng mà nó có return thêm một function nữa nên mình sẽ tiếp tục trace theo cái function đó.
+
+<img width="550" height="369" alt="image" src="https://github.com/user-attachments/assets/74471042-c353-470f-a9b2-b85afcc5f650" />
+
+và mình nhận thấy cái function `sub_401C50` gọi `sub_401510` 
+
+<img width="512" height="99" alt="image" src="https://github.com/user-attachments/assets/47cda9c4-070f-4466-8778-63a540a3a90d" />
+
+thì mình thấy một lệnh lạ đó là onexit(), nó làm gì? Đơn giản là nó đăng kí 1 hàm mà sau khi chương trình sắp kết thúc thì nó gọi lại rồi mới kết thúc. Vậy vấn đề đang nằm ở `sub_401C50`.
+
+<img width="705" height="216" alt="image" src="https://github.com/user-attachments/assets/1c3673ee-3108-4214-a5e6-7087cccd24be" />
+
+Vậy chúng ta có thể thấy được có hai function sẽ được thực thi nữa đó là `sub_401550` và `sub_4016BC` khi vào cả hai func đó thì mình decompile không được, nên nó khá giống  `main` của mình. Vậy mình sẽ bắt đầu patch  `main` trước
 
 Nhưng mà patch ở đâu? Patch ở những chỗ không có nghĩa, gọi lung tung khiến IDA bị rối.
 Vậy mình sẽ patch ở sau `call sub_401CC0` (vì nó là function thật) dùng lệnh của IDApy:
@@ -321,9 +343,16 @@ print(res.decode("ascii"))
 
 <img width="1532" height="322" alt="image" src="https://github.com/user-attachments/assets/c5aa87f1-b37f-4605-b0c7-7d4ebd68c714" />
 
-mình có thể thấy libc_start_main và hai cái [.init_array, .finit_array ](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) và vì mình ko có main nên chạy init và exit.
+mình có thể thấy `libc_start_main` và hai cái `.init_array`, `.finit_array`
 
-<img width="1004" height="418" alt="image" src="https://github.com/user-attachments/assets/bdb3c4e8-192b-470d-9da7-240bfa104f80">
+<img width="741" height="635" alt="image" src="https://github.com/user-attachments/assets/595a2afc-8c49-4d8e-a9a3-14efd80920d1" />
+
+Để tìm hiểu thêm sâu hơn về init và finit các bạn có thể tham khảo link [này](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) 
+Nhưng tóm gọn lại thì                                                                                                                                              
+init là constructor, nó được gọi trước khi main() bắt đầu và được gọi bởi `libc_start_main`                                                                        
+finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor                                                              
+
+<img width="1919" height="313" alt="image" src="https://github.com/user-attachments/assets/400b75d9-e5dd-4c52-aef1-6904d2a054e5" />
 
 vào `sub_40155A`    
 chương trình call rất nhiều functions và mỗi functions nó như vậy.
@@ -472,7 +501,7 @@ output:
 
 
 
-
+còn upd thêm...
 
     
 
