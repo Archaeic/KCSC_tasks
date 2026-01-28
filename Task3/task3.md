@@ -342,15 +342,45 @@ print(res.decode("ascii"))
 Ở bài này chúng ta không có hàm main, thay vào đó là một đống functions. Việc đầu tiên mình làm là tìm string để xem có manh mối gì không
 
 <img width="1532" height="322" alt="image" src="https://github.com/user-attachments/assets/c5aa87f1-b37f-4605-b0c7-7d4ebd68c714" />
+đầu tiên vào phần `input`
 
-mình có thể thấy `libc_start_main` và hai cái `.init_array`, `.finit_array`
+```c
+signed __int64 sub_4013DC()
+{
+  signed __int64 v0; // rax
+  int i; // [rsp+1Ch] [rbp-4h]
+
+  v0 = sys_open("./input", 0, (int)"./input");
+  if ( (int)v0 < 0 )
+    exit(-1);
+  for ( i = 0; i <= 255; ++i )
+    buf[i] = 0;
+  return sys_read(v0, buf, 0xFCu);
+}
+```
+thì hàm này đọc input bằng file input, dùng lệnh này để tạo file input
+```
+echo -n "CyKor{Sorry_for_the_prank_but_wasn\'t_it_fun?_e071a0b358c7a6c4e4}" > input
+```
+rồi sau đó mở no-main
+
+<img width="866" height="198" alt="image" src="https://github.com/user-attachments/assets/8e35815b-c6c4-4c90-9c08-b50e12d5e7b0" />
+
+mình có thể thấy rằng input đã vào buf
+
+tiếp theo, mình có thể thấy `libc_start_main` và hai cái `.init_array`, `.finit_array`
 
 <img width="741" height="635" alt="image" src="https://github.com/user-attachments/assets/595a2afc-8c49-4d8e-a9a3-14efd80920d1" />
 
 Để tìm hiểu thêm sâu hơn về init và finit các bạn có thể tham khảo link [này](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) 
 Nhưng tóm gọn lại thì                                                                                                                                              
 init là constructor, nó được gọi trước khi main() bắt đầu và được gọi bởi `libc_start_main`                                                                        
-finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor                                                              
+finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor   
+đậy là lúc init bắt đầu
+
+<img width="1919" height="107" alt="image" src="https://github.com/user-attachments/assets/6f1652bf-75bf-477a-9687-a4172a7de18c" />
+
+không main(), libc_start_main bị nop nên logic sẽ nằm trong init
 
 <img width="1919" height="313" alt="image" src="https://github.com/user-attachments/assets/400b75d9-e5dd-4c52-aef1-6904d2a054e5" />
 
