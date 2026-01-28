@@ -499,12 +499,386 @@ output:
 <img width="647" height="30" alt="image" src="https://github.com/user-attachments/assets/e2d4be76-6396-4a6e-acf6-e87c1ea03b5f" />
 
 
+## Bài phụ
+
+### 1. easy_peasy (kctf)
+
+#### Main
+```c
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  size_t v3; // rax
+  char *v4; // rax
+  size_t v5; // rax
+  size_t v6; // rax
+  int v7; // r12d
+  size_t v8; // rax
+  char *v10; // rdi
+  __int64 v11; // rcx
+  __int64 v12; // r14
+  size_t v13; // rax
+  char *v14; // rdi
+  __int64 i; // rcx
+  __int64 v16; // r13
+  size_t v17; // rax
+  char *v18; // [rsp+0h] [rbp-358h]
+  __int64 v19; // [rsp+0h] [rbp-358h]
+  char s1[48]; // [rsp+20h] [rbp-338h] BYREF
+  char v21[64]; // [rsp+50h] [rbp-308h] BYREF
+  char v22[128]; // [rsp+90h] [rbp-2C8h] BYREF
+  char s[5]; // [rsp+110h] [rbp-248h] BYREF
+  _BYTE v24[5]; // [rsp+115h] [rbp-243h] BYREF
+  _BYTE v25[246]; // [rsp+11Ah] [rbp-23Eh] BYREF
+  char v26; // [rsp+210h] [rbp-148h] BYREF
+  unsigned __int64 v27; // [rsp+318h] [rbp-40h]
+
+  v27 = __readfsqword(0x28u);
+  puts("========================================");
+  puts("   E4sy P3asy - KnightCTF 2026");
+  puts("========================================");
+  puts("[*] Enter the flag to prove your worth!");
+  puts("");
+  printf("flag> ");
+  if ( fgets(s, 256, stdin) )
+  {
+    v3 = strlen(s);
+    if ( v3 )
+    {
+      v4 = &v22[v3 + 127];
+      do
+      {
+        if ( *v4 != 10 && *v4 != 13 )
+          break;
+        *v4-- = 0;
+      }
+      while ( &v4[1LL - (_QWORD)s] );
+    }
+    v5 = strlen(s);
+    sub_1660(s, v5, &v26);
+    if ( (unsigned int)sub_1760(s, "GoogleCTF{") )
+    {
+      if ( (unsigned int)sub_17A0(s) )
+      {
+        v6 = strlen(s);
+        if ( v6 - 11 <= 0xFF )
+        {
+          qmemcpy(&v26, v25, v6 - 11);
+          v10 = v21;
+          v25[v6 + 235] = 0;
+          v11 = 16;
+          v18 = v21;
+          while ( v11 )
+          {
+            *(_DWORD *)v10 = 0;
+            v10 += 4;
+            --v11;
+          }
+          strcpy(v21, "G00gleCTF_s@lt_2026");
+          if ( v6 == 24 )
+          {
+            v12 = 0;
+            while ( 1 )
+            {
+              snprintf(v22, 0x80u, "%s%zu%c", v18, v12, (unsigned int)*(&v26 + v12), v18);
+              v13 = strlen(v22);
+              sub_1660(v22, v13, s1);
+              if ( strcmp(s1, off_3D60[v12]) )
+                break;
+              if ( ++v12 == 13 )
+              {
+                puts("[!] Interesting... but that's a decoy flag from a different universe.");
+                puts("[!] You're in KnightCTF, not GoogleCTF :)");
+                puts("Try again!");
+                return 0;
+              }
+            }
+          }
+        }
+      }
+    }
+    if ( (unsigned int)sub_1760(s, (char *)"CTF{") || (v7 = sub_1760(s, "FLAG{")) != 0 )
+    {
+      puts("[?] Format looks suspicious... but not quite.");
+      puts("Try again!");
+    }
+    else
+    {
+      if ( (unsigned int)sub_1760(s, "KCTF{") )
+      {
+        if ( (unsigned int)sub_17A0(s) )
+        {
+          v8 = strlen(s);
+          if ( v8 - 6 <= 0xFF )
+          {
+            qmemcpy(&v26, v24, v8 - 6);
+            v14 = v21;
+            v25[v8 + 240] = 0;
+            for ( i = 16; i; --i )
+            {
+              *(_DWORD *)v14 = v7;
+              v14 += 4;
+            }
+            qmemcpy(v21, "KnightCTF_2026_s@lt", 19);
+            if ( v8 == 29 )
+            {
+              v16 = 0;
+              snprintf(v22, 0x80u, "%s%zu%c", v21, 0, (unsigned int)v26);
+              while ( 1 )
+              {
+                v17 = strlen(v22);
+                sub_1660(v22, v17, s1);
+                if ( strcmp(s1, off_3CA0[v16]) )
+                  break;
+                if ( ++v16 == 23 )
+                {
+                  puts("Good job! You got it!");
+                  return 0;
+                }
+                snprintf(v22, 0x80u, "%s%zu%c", v19, v16, (unsigned int)*(&v26 + v16), v19);
+              }
+            }
+          }
+        }
+      }
+      puts("Try again!");
+    }
+  }
+  return 0;
+}
+```
+Có thể thấy được bài này có nhiều fake flag nhưng mình chỉ cần quan tâm ở đoạn này.
+
+```c
+      if ( (unsigned int)sub_1760(s, "KCTF{") )
+      {
+        if ( (unsigned int)sub_17A0(s) )
+        {
+          v8 = strlen(s);
+          if ( v8 - 6 <= 0xFF )
+          {
+            qmemcpy(&v26, v24, v8 - 6);
+            v14 = v21;
+            v25[v8 + 240] = 0;
+            for ( i = 16; i; --i )
+            {
+              *(_DWORD *)v14 = v7;
+              v14 += 4;
+            }
+            qmemcpy(v21, "KnightCTF_2026_s@lt", 19);
+            if ( v8 == 29 )
+            {
+              v16 = 0;
+              snprintf(v22, 0x80u, "%s%zu%c", v21, 0, (unsigned int)v26);
+              while ( 1 )
+              {
+                v17 = strlen(v22);
+                sub_1660(v22, v17, s1);
+                if ( strcmp(s1, off_3CA0[v16]) )
+                  break;
+                if ( ++v16 == 23 )
+                {
+                  puts("Good job! You got it!");
+                  return 0;
+                }
+                snprintf(v22, 0x80u, "%s%zu%c", v19, v16, (unsigned int)*(&v26 + v16), v19);
+```
 
 
-còn upd thêm...
+<img width="237" height="64" alt="image" src="https://github.com/user-attachments/assets/af747266-bdc1-4b5b-b1af-1bc4cf3504b4" />
 
-    
+đoạn này là check len, biết len == 29 mà vì v8 -6 nên flag sẽ lag KCTF{23 bytes}
 
+nhưng khi mình vào off_3CA0 thì mình thấy md5 nên mình sẽ brute force;p
+
+<img width="729" height="507" alt="image" src="https://github.com/user-attachments/assets/344442f4-832a-4079-9f7f-0495a42d3199" />
+
+
+```py 
+import hashlib
+
+targets = [
+    "781011edfb2127ee5ff82b06bb1d2959",
+    "4cf891e0ddadbcaae8e8c2dc8bb15ea0",
+    "d06d0cbe140d0a1de7410b0b888f22b4",
+    "d44c9a9b9f9d1c28d0904d6a2ee3e109",
+    "e20ab37bee9d2a1f9ca3d914b0e98f09",
+    "d0beea4ce1c12190db64d10a82b96ef8",
+    "ac87da74d381d253820bcf4e5f19fcea",
+    "ce3f3a34a04ba5e5142f5db272b6cb1f",
+    "13843aca227ef709694bbfe4e5a32203",
+    "ca19a4c4eb435cb44d74c1e589e51a10",
+    "19edec8e46bdf97e3018569c0a60baa3",
+    "972e078458ce3cb6e32f795ff4972718",
+    "071824f6039981e9c57725453e005beb",
+    "66cd6098426b0e69e30e7fa360310728",
+    "f78d152df5d277d0ab7d25fb7d1841f3",
+    "dba3a36431c4aaf593566f7421abaa22",
+    "8820bbdad85ebee06632c379231cfb6b",
+    "722bc7cde7d548b81c5996519e1b0f0f",
+    "c2862c390c830eb3c740ade576d64773",
+    "94da978fe383b341f9588f9bab246774",
+    "bea3bb724dbd1704cf45aea8e73c01e1",
+    "ade2289739760fa27fd4f7d4ffbc722d",
+    "3cd0538114fe416b32cdd814e2ee57b3"
+]
+
+salt = b"KnightCTF_2026_s@lt"
+payload = []
+
+for i, target in enumerate(targets):
+    for b in range(256):
+        data = salt + str(i).encode() + bytes([b])
+        if hashlib.md5(data).hexdigest() == target:
+            payload.append(chr(b))
+            break
+
+flag = "KCTF{" + "".join(payload) + "}"
+print(flag)
+```
+<img width="308" height="39" alt="image" src="https://github.com/user-attachments/assets/6f05d8be-aad8-48ba-bbcc-3432763c95c7" />
+
+<img width="485" height="160" alt="image" src="https://github.com/user-attachments/assets/12944dc0-a2f5-49c7-b94e-6d048bc2a883" />
+
+### 2. rem3
+
+#### main 
+```c
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  size_t v3; // rax
+  _BYTE v5[58]; // [rsp+0h] [rbp-158h] BYREF
+  char s[16]; // [rsp+40h] [rbp-118h] BYREF
+  unsigned __int64 v7; // [rsp+148h] [rbp-10h]
+
+  v7 = __readfsqword(0x28u);
+  puts("=== KCTF Reverse Challenge ===");
+  printf("Enter flag: ");
+  if ( fgets(s, 256, stdin) )
+  {
+    v3 = strcspn(s, "\r\n");
+    s[v3] = 0;
+    if ( v3 != 29 )
+      goto LABEL_7;
+    sub_1380();
+    if ( !memcmp(s, "KCTF{str1ngs_lie_dont_trust!}", 0x1Du) )
+    {
+      puts("Congrats — you got a flag! But... not sure you'll get points for it :)");
+      puts("KCTF{str1ngs_lie_dont_trust!}");
+      return 0;
+    }
+    if ( sub_1470(s) == 0xE76FA3DABA5D6F3ALL )
+    {
+      puts("Congrats — you got a flag! But... not sure you'll get points for it :)");
+      puts("KCTF{hash_passes_but_fake!!!}");
+      return 0;
+    }
+    *(__m128i *)v5 = _mm_load_si128((const __m128i *)s);
+    *(__m128i *)&v5[13] = _mm_loadu_si128((const __m128i *)&s[13]);
+    ((void (__fastcall *)(_BYTE *))sub_14C0)(v5);
+    if ( (unsigned int)sub_1400(v5, &unk_2160, &unk_2150, &unk_2140) )
+    {
+      puts("Success! Real flag accepted.");
+      return 0;
+    }
+    if ( (unsigned int)sub_1400(v5, &unk_2130, &unk_2120, &unk_2110) )
+    {
+      puts("Congrats — you got a flag! But... not sure you'll get points for it :)");
+      puts("KCTF{fake_flag_for_reversers}");
+    }
+    else
+    {
+LABEL_7:
+      puts("Failed!");
+    }
+    return 0;
+  }
+  return 1;
+}
+```
+lại fake flags nhưng đây là chộ mình cần phân tích
+```c
+}
+    *(__m128i *)v5 = _mm_load_si128((const __m128i *)s);
+    *(__m128i *)&v5[13] = _mm_loadu_si128((const __m128i *)&s[13]);
+    ((void (__fastcall *)(_BYTE *))sub_14C0)(v5);
+    if ( (unsigned int)sub_1400(v5, &unk_2160, &unk_2150, &unk_2140) )
+    {
+      puts("Success! Real flag accepted.");
+      return 0;
+```
+vào `sub_14C0`
+```c
+char __fastcall sub_14C0(__int64 a1)
+{
+  int v2; // r8d
+  int v3; // edi
+  int v4; // esi
+  __int64 i; // rdx
+  int v6; // eax
+  int v7; // ecx
+  int v8; // eax
+
+  v2 = 0;
+  v3 = 0;
+  v4 = -61;
+  for ( i = 0; i != 29; ++i )
+  {
+    v6 = v3 + (0x2F910ED35CA71942uLL >> (8 * ((unsigned __int8)i & 7u)));
+    v3 += 29;
+    LOBYTE(v6) = __ROL1__(*(_BYTE *)(a1 + i) ^ v6, 0x6A124DE908B17733uLL >> ((8 * i + 16) & 0x38));
+    v7 = v2 ^ (0x6A124DE908B17733uLL >> (8 * ((unsigned __int8)i & 7u)));
+    v2 += 17;
+    v8 = v7 ^ (v4 + v6);
+    LOBYTE(v8) = __ROR1__(v8, v4);
+    LOBYTE(v7) = (8 * i + 24) & 0x38;
+    *(_BYTE *)(a1 + i) = v8;
+    v4 += v8 + ((0x2F910ED35CA71942uLL >> v7) ^ 0xFFFFFFA5);
+  }
+  return v8;
+}
+```
+đây là ROR và ROL và nó lấy byte từ `unk_2160`, `unk_2150`, `unk_2140`.                                                                                                      
+solve
+```py
+def ROL(x, r):
+    r &= 7
+    return ((x << r) | (x >> (8 - r))) & 0xFF
+
+def ROR(x, r):
+    r &= 7
+    return ((x >> r) | (x << (8 - r))) & 0xFF
+
+a1 = list(bytes.fromhex(
+    "DC 6B BB 4D FD 25 E4 7E C3 26 "
+    "F5 72 AB 96 FC 8D 55 10 93 C1 "
+    "FD 81 46 5B 7E 33 83 8F 2F"
+))
+v2 = 0
+v3 = 0
+v4 = -61
+out = []
+for i in range(29):
+    v8 = a1[i]
+    v8 = ROL(v8, v4)
+    rot = (0x6A124DE908B17733 >> ((8 * i + 16) & 0x38)) & 7
+    v7 = (v2 ^ (0x6A124DE908B17733 >> (8 * (i & 7)))) & 0xFF
+    v2 += 17
+    v6 = ((v7 ^ v8) - (v4 & 0xFF)) & 0xFF
+    base = (v3 + (0x2F910ED35CA71942 >> (8 * (i & 7)))) & 0xFF
+    inp = base ^ ROR(v6, rot)
+    out.append(inp)
+    v3 += 29
+    v7 = (8 * i + 24) & 0x38
+    v4 += a1[i] + ((0x2F910ED35CA71942 >> v7) ^ 0xFFFFFFA5)
+
+print(bytes(out).decode())
+```
+
+<img width="313" height="37" alt="image" src="https://github.com/user-attachments/assets/ef2e5df3-cbcb-498a-8c0e-a2f2f63ee220" />
+
+<img width="566" height="81" alt="image" src="https://github.com/user-attachments/assets/2f444dd0-26f9-4160-ac6b-82a6efe3db7a" />
+
+###
 
 
 
