@@ -419,7 +419,7 @@ void __fastcall __noreturn encrypt(_QWORD *a1)
   validator(&v1);
 }
 ```
-hàm này encrypt rồi call `sub_402128`(validator)
+hàm này encrypt rồi call `sub_402128`(validator)                                                                                                                            
 `sub_402128`
 ```c
 void __fastcall __noreturn validator(_QWORD *a1)
@@ -878,11 +878,98 @@ print(bytes(out).decode())
 
 <img width="566" height="81" alt="image" src="https://github.com/user-attachments/assets/2f444dd0-26f9-4160-ac6b-82a6efe3db7a" />
 
-###
+### ez-enc
 
+<img width="981" height="511" alt="image" src="https://github.com/user-attachments/assets/737150e1-a229-40ad-b70f-5825d22e2214" />
 
+nó có rất nhiều file nên mình sẽ phân tích từng file, đầu tiên mình xem file số 0 thử
 
+#### main
+```c
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  unsigned __int64 v3; // rax
+  __int64 v4; // rcx
+  const char *v5; // rcx
+  __int64 v7; // [rsp+20h] [rbp-28h] BYREF
+  __int16 v8; // [rsp+28h] [rbp-20h]
 
+  v7 = 0;
+  v8 = 0;
+  printf("password: ");
+  sub_140001064("%8s", (const char *)&v7);
+  v3 = -1;
+  v4 = 0;
+  do
+    ++v3;
+  while ( *((_BYTE *)&v7 + v3) );
+  if ( v3 <= 8 )
+  {
+    do
+    {
+      *((_BYTE *)&v7 + v4) ^= word_140028A80[v4];
+      ++v4;
+    }
+    while ( v4 < 8 );
+    v5 = "Correct\n";
+    if ( v7 != qword_140028A88 )
+      v5 = "Wrong\n";
+    printf(v5, "Wrong\n");
+  }
+  else
+  {
+    printf("Wrong\n");
+  }
+  return 0;
+}
+```
+chương trình nó chỉ đang xor `word_140028A80` với `qword_140028A88` thôi ;v
+solve
+```py
+key = [0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11]
+ex  = [0x47, 0x7c, 0x21, 0x69, 0x74, 0x5c, 0x20, 0x56]
+
+password = []
+for i in range(8):
+    password.append(ex[i] ^ key[i])
+
+print(bytes(password).decode())
+```
+
+<img width="267" height="52" alt="image" src="https://github.com/user-attachments/assets/7f477dfd-1c6d-4bde-82fe-4e9598dfa5f0" />
+
+vậy giờ mình solve tất cả các file vì nó đều giống nhau cả, và đây là thứ mình có được.
+```
+0 Vm0xeM1G
+1 bFdiRmRW
+2 V0doVVlt
+3 czFWRll3
+4 YUVOamJG
+5 WnpWbTVr
+6 V0ZKc2NI
+7 bFhhMXBQ
+8 VkcxS1Iy
+9 TkZhRmRp
+10 V0ZKeVZt
+11 cEdZV05y
+12 TlZkYVJs
+13 Wk9WbXhW
+14 ZUZacVJs
+15 WmxSMUpJ
+16 Vm10V1dH
+17 SkhhRlJW
+18 YkZKWFZs
+19 WmtXR05G
+20 WkZSTlZt
+21 d3pWREZh
+22 WVdKR1Ns
+23 VldhemxY
+24 WVdzMWNW
+25 UldSVGxR
+26 VVQwOQ==
+```
+`Vm0xeM1GbFdiRmRWV0doVVltczFWRll3YUVOamJGWnpWbTVrV0ZKc2NIbFhhMXBQVkcxS1IyTkZhRmRpV0ZKeVZtcEdZV05yTlZkYVJsWk9WbXhWZUZacVJsWmxSMUpJVm10V1dHSkhhRlJWYkZKWFZsWmtXR05GWkZSTlZtd3pWREZhWVdKR1NsVldhemxYWVdzMWNWUldSVGxRVVQwOQ==` 
+nó là base64 nhưng mà em giải mã nó, nó cũng không ra flag thật, dù em đã test hết rồi và nó ra correct hết.
 
 
 
