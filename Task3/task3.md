@@ -342,7 +342,18 @@ print(res.decode("ascii"))
 Ở bài này chúng ta không có hàm main, thay vào đó là một đống functions. Việc đầu tiên mình làm là tìm string để xem có manh mối gì không
 
 <img width="1532" height="322" alt="image" src="https://github.com/user-attachments/assets/c5aa87f1-b37f-4605-b0c7-7d4ebd68c714" />
-đầu tiên vào phần `input`
+
+đầu tiên, mình có thể thấy `libc_start_main` và hai cái `.init_array`, `.finit_array`
+
+<img width="741" height="635" alt="image" src="https://github.com/user-attachments/assets/595a2afc-8c49-4d8e-a9a3-14efd80920d1" />
+
+Để tìm hiểu thêm sâu hơn về init và finit các bạn có thể tham khảo link [này](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) 
+Nhưng tóm gọn lại thì                                                                                                                                              
+init là constructor, nó được gọi trước khi main() bắt đầu và được gọi bởi `libc_start_main`                                                                        
+finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor   
+đậy là lúc init bắt đầu
+
+tiếp theo vào phần `input`
 
 ```c
 signed __int64 sub_4013DC()
@@ -362,29 +373,20 @@ thì hàm này đọc input bằng file input, dùng lệnh này để tạo fil
 ```
 echo -n "CyKor{Sorry_for_the_prank_but_wasn\'t_it_fun?_e071a0b358c7a6c4e4}" > input
 ```
-rồi sau đó mở no-main
+Rồi sau đó mình debug. 
 
-<img width="866" height="198" alt="image" src="https://github.com/user-attachments/assets/8e35815b-c6c4-4c90-9c08-b50e12d5e7b0" />
+Chạy qua đợt call `sub_40258D` thứ hai
 
-mình có thể thấy rằng input đã vào buf
+<img width="1165" height="732" alt="image" src="https://github.com/user-attachments/assets/9650a3bc-71e8-4a14-b4ec-0daf5273ad45" />
 
-tiếp theo, mình có thể thấy `libc_start_main` và hai cái `.init_array`, `.finit_array`
+tại đợt gọi rbx đầu nó gọi `sub_4013DC`, là function input của mình đọc và lưu input tại buf
 
-<img width="741" height="635" alt="image" src="https://github.com/user-attachments/assets/595a2afc-8c49-4d8e-a9a3-14efd80920d1" />
+<img width="817" height="255" alt="image" src="https://github.com/user-attachments/assets/01cb219b-a5e8-454f-ac48-bcf0d38ec8dd" />
 
-Để tìm hiểu thêm sâu hơn về init và finit các bạn có thể tham khảo link [này](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) 
-Nhưng tóm gọn lại thì                                                                                                                                              
-init là constructor, nó được gọi trước khi main() bắt đầu và được gọi bởi `libc_start_main`                                                                        
-finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor   
-đậy là lúc init bắt đầu
+và ở đợt call rbx thứ 2 nó gọi `sub_40155A`
 
-<img width="1919" height="107" alt="image" src="https://github.com/user-attachments/assets/6f1652bf-75bf-477a-9687-a4172a7de18c" />
+<img width="837" height="521" alt="image" src="https://github.com/user-attachments/assets/3c453ae4-acbc-43dc-a83c-c03ac425338f" />
 
-không main(), libc_start_main bị nop nên logic sẽ nằm trong init
-
-<img width="1919" height="313" alt="image" src="https://github.com/user-attachments/assets/400b75d9-e5dd-4c52-aef1-6904d2a054e5" />
-
-vào `sub_40155A`    
 chương trình call rất nhiều functions và mỗi functions nó như vậy.
 
 <img width="821" height="620" alt="image" src="https://github.com/user-attachments/assets/8ce231c2-5c14-407a-872e-98eb2d16609f" />
@@ -393,21 +395,10 @@ và vì em không biết deobfus kiểu gì nên lướt từng function
 
 Bắt đầu từ hàm sú đầu tiên em tìm được `sub_4027C7`
 
-```c
-void __noreturn lenght()
-{
-  int v0; // r13d
-  int i; // r12d
+hàm này để check lens và truyền buf cho sub_4022B1
 
-  v0 = 0;
-  for ( i = 0; i <= 251 && buf[i]; ++i )
-    ++v0;
-  if ( v0 != 64 )
-    exit(-1);
-  encrypt(buf);
-}
-```
-hàm này để check lens và call sub_4022B1(encrypt)
+<img width="796" height="300" alt="image" src="https://github.com/user-attachments/assets/1f192d9b-fceb-4c69-a0fc-6233f8a5a234" />
+
 
 `sub_4022B1`
 ```c
