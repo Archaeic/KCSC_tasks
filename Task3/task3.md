@@ -391,7 +391,7 @@ chương trình call rất nhiều functions và mỗi functions nó như vậy.
 
 và vì em không biết deobfus kiểu gì nên lướt từng function
 
-Bắt đầu từ hàm sú đầu tiên em tìm được `sub_4013DC`
+Bắt đầu từ hàm sú đầu tiên em tìm được `sub_4027C7`
 
 ```c
 void __noreturn lenght()
