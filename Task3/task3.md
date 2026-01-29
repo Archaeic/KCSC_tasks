@@ -352,7 +352,7 @@ Nhưng tóm gọn lại thì
 init là constructor, nó được gọi trước khi main() bắt đầu và được gọi bởi `libc_start_main`                                                                        
 finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor   
 
-
+Nhưng ở bài này, chúng ta không có main() và cả `libc_start_main`  của chúng ta bị NOP vậy tức là init và finit không theo trình tự như trên
 tiếp theo vào phần `input`
 
 ```c
@@ -375,19 +375,31 @@ echo -n "CyKor{Sorry_for_the_prank_but_wasn\'t_it_fun?_e071a0b358c7a6c4e4}" > in
 ```
 Rồi sau đó mình debug, mình có thể thấy nó gọi `sub_40258D`, func này input sẽ là tên file (a1) và tên cần tìm (a2) sau đó so sánh với nhau.
 
+Ở đợt call `sub_40258D` thứ nhất
+
+init_array được gọi và nó đang chỉ tới `sub_40155A`
+
+<img width="811" height="278" alt="image" src="https://github.com/user-attachments/assets/5e2911c5-871b-43aa-8782-c6a08ec1e047" />
+
 Chạy qua đợt call `sub_40258D` thứ hai
 
-<img width="1165" height="732" alt="image" src="https://github.com/user-attachments/assets/9650a3bc-71e8-4a14-b4ec-0daf5273ad45" />
+finit_array được gọi và nó đang chỉ tới `sub_4013DC`, tức là func input của mình
 
-tại đợt gọi rbx đầu nó gọi `sub_4013DC`, input của mình được đọc và lưu input tại buf
+<img width="1255" height="302" alt="image" src="https://github.com/user-attachments/assets/eba1cf09-12c7-46a7-a72b-5e857a6758c8" />
 
-<img width="817" height="255" alt="image" src="https://github.com/user-attachments/assets/01cb219b-a5e8-454f-ac48-bcf0d38ec8dd" />
+TUY NHIÊN khi xuống call rbx đầu tiên, thì nó lại gọi `sub_4013DC` cho dù nó là finit
+
+<img width="786" height="292" alt="image" src="https://github.com/user-attachments/assets/957b322d-5f9c-4350-a62f-a9cd645d2ce4" />
 
 và ở đợt call rbx thứ 2 nó gọi `sub_40155A`
 
-<img width="837" height="521" alt="image" src="https://github.com/user-attachments/assets/3c453ae4-acbc-43dc-a83c-c03ac425338f" />
+<img width="882" height="297" alt="image" src="https://github.com/user-attachments/assets/08929746-34e7-4dbc-a2db-50f822502a53" />
 
-chương trình call rất nhiều functions và mỗi functions nó như vậy.
+vậy init và finit ở đây nó chả liên quan gì hết, nó chỉ đang đánh lừa 😭😭
+
+vậy có thể nói finit ở đây được gọi trước init.
+
+Qua `sub_40155A`, chương trình call rất nhiều functions và mỗi functions nó như vậy.
 
 <img width="821" height="620" alt="image" src="https://github.com/user-attachments/assets/8ce231c2-5c14-407a-872e-98eb2d16609f" />
 
