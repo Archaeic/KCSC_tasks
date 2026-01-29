@@ -351,7 +351,7 @@ print(res.decode("ascii"))
 Nhưng tóm gọn lại thì                                                                                                                                              
 init là constructor, nó được gọi trước khi main() bắt đầu và được gọi bởi `libc_start_main`                                                                        
 finit là destructor, nó gọi sau main() và được thực hiện cùng lúc với exit, nó để dọn dẹp constructor   
-đậy là lúc init bắt đầu
+
 
 tiếp theo vào phần `input`
 
@@ -373,13 +373,13 @@ thì hàm này đọc input bằng file input, dùng lệnh này để tạo fil
 ```
 echo -n "CyKor{Sorry_for_the_prank_but_wasn\'t_it_fun?_e071a0b358c7a6c4e4}" > input
 ```
-Rồi sau đó mình debug. 
+Rồi sau đó mình debug, mình có thể thấy nó gọi `sub_40258D`, func này input sẽ là tên file (a1) và tên cần tìm (a2) sau đó so sánh với nhau.
 
 Chạy qua đợt call `sub_40258D` thứ hai
 
 <img width="1165" height="732" alt="image" src="https://github.com/user-attachments/assets/9650a3bc-71e8-4a14-b4ec-0daf5273ad45" />
 
-tại đợt gọi rbx đầu nó gọi `sub_4013DC`, là function input của mình đọc và lưu input tại buf
+tại đợt gọi rbx đầu nó gọi `sub_4013DC`, input của mình được đọc và lưu input tại buf
 
 <img width="817" height="255" alt="image" src="https://github.com/user-attachments/assets/01cb219b-a5e8-454f-ac48-bcf0d38ec8dd" />
 
