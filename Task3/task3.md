@@ -532,7 +532,7 @@ output:
 <img width="647" height="30" alt="image" src="https://github.com/user-attachments/assets/e2d4be76-6396-4a6e-acf6-e87c1ea03b5f" />
 
 
-## Bài phụ
+## sub_task
 
 ### 1. easy_peasy (kctf)
 
