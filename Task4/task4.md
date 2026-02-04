@@ -1,11 +1,13 @@
 # Task 4: Anti-debugger
 
 ### Yêu cầu
-:::info
-Trình bày cách hiểu về anti debug
-Trang này (https://anti-debug.checkpoint.com/) có cung cấp hiểu biết về nhiều kỹ thuật anti debug, chia làm 8 mục lớn (debug flags, object handles, ...). Tìm hiểu về mấy cái kỹ thuật trong này, ít nhất 2 kỹ thuật trên mỗi mục rồi báo cáo lại.
-Code 1 cái chương trình chống debug, ở mỗi mục bạn chọn ít nhất 1 kỹ thuật bạn đã viết, cho vào cái chương trình đó.
-:::
+> ## Trình bày cách hiểu về anti-debug
+>
+> Trang này (https://anti-debug.checkpoint.com/) có cung cấp hiểu biết về nhiều kỹ thuật anti debug, chia làm 8 mục lớn (debug flags, object handles, ...).
+> Tìm hiểu về mấy cái kỹ thuật trong này, ít nhất 2 kỹ thuật trên mỗi mục rồi báo cáo lại.
+> Code 1 cái chương trình chống debug, ở mỗi mục bạn chọn ít nhất 1 kỹ thuật bạn đã viết, cho vào cái chương trình đó.
+
+
 
 # Lý Thuyết
 ## Debug Flags
@@ -14,7 +16,7 @@ Code 1 cái chương trình chống debug, ở mỗi mục bạn chọn ít nh�
 Đây là một native API của window trong `ntdll.dll`, nhưng không như `IsDebuggerPresent()`, khi được gọi nó thực hiện syscall và chuyển sang kernel.
 
 Syntax:
-```cpp!
+```cpp
 __kernel_entry NTSTATUS NtQueryInformationProcess(
   [in]            HANDLE           ProcessHandle,
   [in]            PROCESSINFOCLASS ProcessInformationClass,
@@ -28,7 +30,7 @@ Tóm lại `NtQueryInformationProcess()` là một hàm cho phép chương trìn
 #### ProcessDebugPort
 Nếu bị đang debug thì trả về giá trị DWORD là 0xFFFFFFFF (--1)
 Syntax: 
-```asm!
+```asm
  lea rcx, [dwReturned]
     push rcx    ; ReturnLength
     mov r9d, 4  ; ProcessInformationLength
@@ -91,7 +93,7 @@ Giá trị khác 0 trong trường hợp `ProcessDebugFlags`.
 chương trình tự đọc trực tiếp các cấu trúc nội bộ trong bộ nhớ thay vì dùng API 
 ### PEB!BeingDebugged Flag
 Cái này hoạt động giống `IsDebuggerPresent()` nhưng cách làm khác thôi.
-```asm!
+```asm
     mov rax, gs:[60h]         ; PEB
     cmp byte ptr [rax+2], 0   ; so sánh BeingDebugged
     jne being_debugged
@@ -106,7 +108,7 @@ Ngoài ra, khi quá trình debug bắt đầu, hệ điều hành sẽ tạo ra 
 Một số debugger có thể bị phát hiện bằng cách sử dụng hàm `kernel32!OpenProcess()` trong process `csrss.exe`.
 `Call OpenProcess` chỉ thành công khi:
 Users thuộc Administrators và process có debug privilege
-```cpp!
+```cpp
 typedef DWORD (WINAPI *TCsrGetProcessId)(VOID);
 
 bool Check()
@@ -137,7 +139,7 @@ Handle của file vừa được load sẽ được lưu trong cấu trúc `LOAD
 NẾU handle này không được debugger đóng, file đó sẽ không thể được mở với chế độ truy cập độc quyền.
 Để check có debugger hay không, ta có thể load bất kỳ file nào bằng `kernel32!LoadLibraryA()` và sau đó thử mở file đó bằng `kernel32!CreateFileA()`. Nếu `call kernel32!CreateFileA()` fail, thì có debugger.
 Code: 
-```cpp!
+```cpp
 bool Check()
 {
     CHAR szBuffer[] = { "C:\\Windows\\System32\\calc.exe" }; //exe đc load vào
@@ -159,7 +161,7 @@ Cố tình gây ra exception để xác minh xem hành vi tiếp theo có khác 
 Nếu một exception được được kích hoạt và không có handler đc đăng kí, thì `kernel32!UnhandledExceptionFilter()` được gọi. Mình có thể dùng `kernel32!SetUnhandledExceptionFilter()` để đăng kí exception filter đặc biệt chưa được handle. Nhưng nếu chương trình được debugged thì cái filter không được gọi và exception sẽ được pass tới debugger 
 Vì vậy, nếu exception filter chưa được handle mà được đăng kí và cái quyền điều khiển được truyền tới nó, thì chương trình không có debugger
 Code: 
-```asm!
+```asm
 include 'win32ax.inc'
 
 .code
@@ -186,7 +188,7 @@ being_debugged:
 Nó không phải detect debugger mà là giấu control flow của chương trình
 Chúng ta đăng kí một exception handler, từ đó nâng cái exception khác lên sau đó được truyền qua handler rồi nó cứ tiếp diễn như vậy cho đến khi handler dẫn tới chỗ mình cần giấu 
 Code (Structured)
-```cpp!
+```cpp
 #include <Windows.h>
 
 void MaliciousEntry()
@@ -238,7 +240,7 @@ Còn Hiding Control Flow, chúng ta phải trace đến payload
 Khi chạy dưới debugger, thì có một sự delay giữa các lệnh và lúc thực thi. Mình có thể đo sự delay này giữa một vài đoạn của code và so sánh với delay thực sự
 
 ### GetLocalTime()
-```cpp!
+```cpp
 bool IsDebugged(DWORD64 qwNativeElapsed)
 {
     SYSTEMTIME stStart, stEnd;
@@ -264,7 +266,7 @@ bool IsDebugged(DWORD64 qwNativeElapsed)
 Thì khi mình dùng debugger chương trình sẽ chạy lâu hơn khi mình chỉ việc chạy chương trình, vì thế  nó sẽ so sánh thời gian khi mình dùng debugger để chạy code này với thời gian thật sự khi mình chạy code này mà không có debugger, trường hợp này nó sẽ lấy thời gian của hệ thống để so sánh
 
 ### QueryPerformanceCounter()
-```cpp!
+```cpp
 bool IsDebugged(DWORD64 qwNativeElapsed)
 {
     LARGE_INTEGER liStart, liEnd;
@@ -284,7 +286,7 @@ Kiểm tra bộ nhớ và kiếm các software breakpoint trong code, hoặc ki�
 Xác định machine code của một số hàm xem có byte 0xCC hay không, byte 0xCC đại diện cho lệnh `INT 3`.
 Nhưng cách này tạo khá nhiều false positive
 Code: 
-```cpp!
+```cpp
 bool CheckForSpecificByte(BYTE cByte, PVOID pMemory, SIZE_T nMemorySize = 0)
 {
     PBYTE pBytes = (PBYTE)pMemory; 
@@ -319,7 +321,7 @@ bool IsDebugged()
 ### Hardware Breakpoints
 Thanh ghi debug DR0, DR1, DR2 và DR3 có thể được lấy từ context của thread. Nếu chúng chứa giá trị khác 0, nghĩa là process đang chạy dưới debugger và hardware breakpoint đc đặt.
 Code:
-```cpp!
+```cpp
 bool IsDebugged()
 {
     CONTEXT ctx;
@@ -337,7 +339,7 @@ bool IsDebugged()
 
 ### INT3
 Lệnh INT3 là một lệnh ngắt được sử dụng như software breakpoint. Khi không có debugger, sau khi đến lệnh INT3, một exception `EXCEPTION_BREAKPOINT` (0x80000003) và một exception handler sẽ được gọi. Nếu có debugger, control flow sẽ không được chuyển tới exception handler.
-```cpp!
+```cpp
 bool IsDebugged()
 {
     __try
@@ -353,7 +355,7 @@ bool IsDebugged()
 ```
 Ngoài ra còn có dạng dài của lệnh INT3 (opcode CD 03).
 Khi exception `EXCEPTION_BREAKPOINT` xảy ra, Windows giảm thanh ghi EIP về vị trí của opcode 0xCC và chuyển control tới exception handler. Trong TH dạng dài của lệnh INT3, EIP sẽ trỏ tới giữa instruction (tức byte 0x03). Do đó, EIP cần được chỉnh trong exception handler nếu ta muốn tiếp tục execute sau lệnh INT3 nếu ko, rất có thể gặp `EXCEPTION_ACCESS_VIOLATION`. Nếu ko muốn, đừng sửa EIP.
-```cpp!
+```cpp
 bool g_bDebugged = false;
 
 int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep)
@@ -378,7 +380,7 @@ bool IsDebugged()
 
 ### ICE
 thực thi lệnh `ICE` để tạo `EXCEPTION_SINGLE_STEP`. Nếu trình debug đang trace, debugger xử lý exception như single-step và handler nội bộ sẽ không chạy nên ta biết có debugger. Nếu không trace, handler chạy.
-```cpp!
+```cpp
 bool IsDebugged()
 {
     __try
@@ -405,7 +407,7 @@ Có ít nhất ba hàm có thể được dùng để attach, đóng vai debugge
 
 Vì chỉ có một debugger có thể được gắn vào một process cùng lúc, việc attach không thành công vào process có thể chỉ ra sự hiện diện của một debugger khác.
 Ở đoạn code dưới, ta chạy instance thứ hai của tiến trình, instance này cố gắng attach debugger vào tiến trình cha của nó (instance thứ nhất). Nếu `kenel32!DebugActiveProcess() `kết thúc không thành công, ta set một event được tạo bởi instance đầu. Nếu event được set, instance đầu hiểu rằng có  debugger.
-```cpp!
+```cpp
 #define EVENT_SELFDBG_EVENT_NAME L"SelfDebugging"
 
 bool IsDebugged()
@@ -500,7 +502,7 @@ Mình cũng có thể xem thử có tool nào có thể hook `user32!BlockInput(
 Hàm này chỉ cho phép chặn input một lần. Call lần 2 sẽ trả false
 Nếu hàm trả về true bất kì input nào, điều đó chứng tỏ có gì đó đang hook.
 Code: 
-```cpp!
+```cpp
 bool IsHooked ()
 {
     BOOL bFirstResult = false, bSecondResult = false;
@@ -522,7 +524,7 @@ bool IsHooked ()
 ## Misc
 ### FindWindow()
 Tìm tên/lớp cửa sổ đặc trưng của các disassembler (OllyDbg, WinDbg,…). Nếu thấy một trong các lớp đó, rất có khả năng debugger đang chạy.
-```cpp!
+```cpp
 const std::vector<std::string> vWindowClasses = {
     "antidbg",
     "ID",               // Immunity Debugger
@@ -550,7 +552,7 @@ bool IsDebugged()
 Các hàm debug như `ntdll!DbgPrint()` và `kernel32!OutputDebugStringW()` gây ra exception `DBG_PRINTEXCEPTION_C` (0x40010006). Nếu ct được execute với một debugger đang được attach, thì debugger sẽ xử lý exception này. Nhưng nếu không có debugger, và có một exception handler được đăng ký, exception này sẽ bị bắt bởi exception handler.
 phát hiện debugger bằng cách kiểm tra xem exception `DBG_PRINTEXCEPTION_C` bị debugger xử lý hay bị handler của chương trình xử lý.
 Code: 
-```cpp!
+```cpp
 bool IsDebugged()
 {
     __try
