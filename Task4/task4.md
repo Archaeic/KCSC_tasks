@@ -574,7 +574,7 @@ PEB!BeingDebugged Flag, Software Breakpoints (INT3), GetLocalTime(), OpenProcess
 
 
 # Sub task
-### Antidebug 1
+## Antidebug 1
 
 TLScallback:
 ```cpp
@@ -901,7 +901,7 @@ int main(){
 ```
 `I_10v3-y0U__wh3n Y0u=c411..M3 Senor1t4`
 
-### checker
+## checker
 
 Main
 ```cpp
@@ -1225,7 +1225,7 @@ if __name__ == '__main__':
 ```
 `KCSC{6r347!!!y0u_4r3_w1nn3r:333}`
 
-### antidebug 3
+## antidebug 3
 
 vào main thì nó sẽ trông như này 
 
