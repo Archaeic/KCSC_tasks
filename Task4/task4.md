@@ -577,31 +577,22 @@ PEB!BeingDebugged Flag, Software Breakpoints (INT3), GetLocalTime(), OpenProcess
 ## Antidebug 1
 
 TLScallback:
-```cpp
-_BYTE *__stdcall TlsCallback_0(int a1, int a2, int a3)
-{
-  int v3; // eax
-  _BYTE *result; // eax
-  void (__stdcall *v5)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD); // [esp-4h] [ebp-8h] BYREF
-  void (__stdcall *v6)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD); // [esp+0h] [ebp-4h]
 
-  v3 = sub_91DF0(2067767744);
-  v6 = (void (__stdcall *)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD))sub_91F10(v3, 1513862064);
-  v5 = v6;
-  v6(-1, 7, &v5, 4, 0);
-  result = v6;
-  if ( v6 )
-  {
-    result = byte_95022;
-    byte_95022[0] = 116;
-  }
-  return result;
-}
-```
+<img width="832" height="443" alt="{9ADFACDA-ED39-4295-A738-9D8DCF6A4664}" src="https://github.com/user-attachments/assets/2997749a-c6e4-4d0e-9e8f-68b2406c98d4" />
 
-<img width="654" height="204" alt="{09C83A45-E0FC-432F-91A9-75025C1E26D1}" src="https://github.com/user-attachments/assets/30fd9289-913c-4c68-8b63-525a7f3ed6cc" />
+chương trình gọi hai hàm nhìn khá là lạ nên mình chạy qua hết hai hàm đấy để xem có gì.
 
-mình có thể thấy EAX trả về khi chạy hết 2 hàm là  `ZwQueryInformationProcess`
+<img width="1051" height="96" alt="{9AAD4F9A-BCCC-427A-ADCD-A90764F4C35E}" src="https://github.com/user-attachments/assets/9bba9a3d-1f76-4cf3-8fac-a37b58df7c17" />
+
+mình có thể thấy EAX trả về khi chạy hết 2 hàm là  `ZwQueryInformationProcess`. Đây là kĩ thuật API resolver, thay vì gọi hàm bằng tên thì nó giấu hàm đó đi và gọi bằng hashes.
+
+<img width="882" height="125" alt="{0521E24F-2522-4A9A-A0E4-CDEB21303212}" src="https://github.com/user-attachments/assets/52509de4-de7a-426f-b9d0-544065ae0ac4" />
+
+qua call đầu chúng ta có thể biết `7B3FA1C0` là hash của module `ntdll.dll` và `5A3BB3B0` là hash của function `ZwQueryInformationProcess`
+
+<img width="481" height="97" alt="{BF566858-6D7A-42C1-BA58-AAFF86588675}" src="https://github.com/user-attachments/assets/7d754832-2e5f-4bc9-ab2b-a7565f0d336f" />
+
+khi bị debug thì thay đổi data unk_505018 + 10
 
 main:
 
@@ -673,28 +664,140 @@ LRESULT __stdcall sub_91350(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 }
 ```
 Nhìn qua thì chương trình đang check ở `sub_91B40`
+```cpp
+char __thiscall check(const char *this)
+{
+  bool v2; // cl
+  int v3; // esi
+  int v4; // ecx
+  char v5; // bl
+  char v6; // cl
+  int v7; // eax
+  char v8; // al
+  int v9; // eax
+  void (__stdcall *v10)(_DWORD); // eax
+  char result; // al
+  char v12; // bl
+  int v13; // eax
+  unsigned __int8 v14; // cl
+  int v15; // eax
+  int v16; // eax
+  void (__stdcall *v17)(_DWORD); // eax
+  void (__stdcall *v18)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD); // [esp-4h] [ebp-25Ch] BYREF
+  void (__stdcall *v19)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD); // [esp+10h] [ebp-248h]
+  int v20; // [esp+14h] [ebp-244h]
+  void (__stdcall *v21)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD); // [esp+18h] [ebp-240h]
+  char v22; // [esp+1Fh] [ebp-239h]
+  char v23[556]; // [esp+20h] [ebp-238h] BYREF
+  int v24; // [esp+24Ch] [ebp-Ch]
 
-tiếp tục phân tích.
+  if ( strlen(this) < 0x26 )
+    return 0;
+  sub_501FD0(v23, byte_50501C[(unsigned __int8)byte_50501C[0] / 0xCu]);
+  v2 = v22;
+  v3 = 0;
+  while ( 2 )
+  {
+    switch ( dword_5032C8[v3] )
+    {
+      case 1:
+        v4 = dword_503360[v3];
+        v5 = this[dword_5033F8[v3]];
+        v22 = NtCurrentPeb()->NtGlobalFlag & 0x70;
+        v6 = sub_502050(v4);
+        v7 = v24;
+        if ( v24 >= 256 )
+          v7 = 0;
+        v24 = v7 + 1;
+        v2 = byte_50329F[v7 + 1] == (char)(v5 ^ v6);
+        goto LABEL_9;
+      case 2:
+        v8 = sub_501600((int)v23, this[dword_5033F8[v3]], dword_503360[v3]);
+        goto LABEL_8;
+      case 3:
+        v8 = sub_5016C0(dword_503360[v3]);
+        goto LABEL_8;
+      case 4:
+        v8 = sub_501760(dword_503360[v3]);
+        goto LABEL_8;
+      case 5:
+        v8 = sub_501950(dword_503360[v3]);
+        goto LABEL_8;
+      case 6:
+        v8 = sub_501AA0(dword_503360[v3]);
+LABEL_8:
+        v2 = v8;
+        goto LABEL_9;
+      case 7:
+        v20 = dword_503360[v3];
+        v12 = this[dword_5033F8[v3]];
+        v13 = sub_501DF0(2067767744);
+        v19 = (void (__stdcall *)(_DWORD, _DWORD, _DWORD, _DWORD, _DWORD))sub_501F10(v13, 1513862064);
+        v21 = 0;
+        v18 = v19;
+        v19(-1, 31, &v18, 4, 0);
+        v21 = v18;
+        v14 = sub_502050(v20);
+        v15 = v24;
+        if ( v24 >= 256 )
+          v15 = 0;
+        v24 = v15 + 1;
+        if ( byte_50329F[v15 + 1] != (v14 ^ (unsigned __int8)v12) )
+          goto LABEL_20;
+        v2 = 1;
+        goto LABEL_10;
+      default:
+LABEL_9:
+        if ( !v2 )
+        {
+LABEL_20:
+          v16 = sub_501DF0(38312619);
+          v17 = (void (__stdcall *)(_DWORD))sub_501F10(v16, 838910877);
+          v17(0);
+          byte_5055B8 = 0;
+          return 0;
+        }
+LABEL_10:
+        if ( ++v3 < 38 )
+          continue;
+        v9 = sub_501DF0(38312619);
+        v10 = (void (__stdcall *)(_DWORD))sub_501F10(v9, 838910877);
+        v10(0);
+        byte_5055B8 = 0;
+        result = 1;
+        break;
+    }
+    return result;
+  }
+}
+```
+chương trình đang thực hiện switch case theo `dword_5032C8`
+
+tiếp tục phân tích theo từng cases, mỗi case đều có antidebug
 
 `CASE 1`
 
+ở đây input của mình vẫn đang được lưu ở edi
+
 <img width="501" height="560" alt="{A1B94610-E1EF-4DF0-A9CC-6C43331BD916}" src="https://github.com/user-attachments/assets/15eb6731-b213-4696-a2c6-c42cd369b015" />
 
-khi bị debug `GlobalFlag` sẽ được set giá trị là `0x70`, và luồng đúng sẽ theo bên phải
+khi bị debug `GlobalFlag` sẽ được set giá trị là `0x70`, và luồng đúng sẽ theo bên phải. Khi qua luồng phải thì giá trị ở dl được set là 0
+
+<img width="582" height="108" alt="{A2338FEF-97FC-4D25-83DF-0BBA9237B557}" src="https://github.com/user-attachments/assets/7f9c7c51-dde0-464a-a707-56a970015aa0" />
+
+ở đây nó xor rồi so sánh với `byte_50329F` (cipher)
+
 
 `CASE 2`
 
-<img width="661" height="691" alt="{DF931DB8-4145-46C8-BFFE-E4C8BBBEC0A1}" src="https://github.com/user-attachments/assets/958a5ed1-c0b2-47d4-8409-fce613c1639f" />
+cái này cũng dùng resolver API giống bên TLS rồi h mình xem case 2 nó gọi cái j
 
-cái này cũng dùng resolver API giống bên TLS 
+<img width="491" height="121" alt="{1BE6564C-F60B-4CDF-9055-C5974A3A9782}" src="https://github.com/user-attachments/assets/7d2bc76c-4004-4334-96fe-6504580bdcc9" />
 
-<img width="1005" height="163" alt="{9BED6A5A-02EE-425E-8F56-7960C35CEB57}" src="https://github.com/user-attachments/assets/611f53db-6854-45f4-94ae-f8f8115b1518" />
+sau solver sẽ là hàm `GetVersion` lấy version của OS của mình. Sau khi set cho luồng đi nó đúng, mình có thể thấy nó giống luồng ở case 1
 
-rồi h mình xem case 2 nó gọi cái j
+<img width="817" height="447" alt="{C87B98B1-412E-4514-B004-1F64108273FA}" src="https://github.com/user-attachments/assets/97c0b881-fb9f-482b-ad5a-2d09b9d0eb64" />
 
-<img width="622" height="193" alt="{B5C7D9C3-FCC8-48D0-AAD6-858E50FDA986}" src="https://github.com/user-attachments/assets/accc13fb-2368-40dc-b64d-f90ad71ce872" />
-
-sau solver sẽ là hàm `GetVersion` lấy version của OS của mình.
 
 `CASE 3`
 
@@ -703,7 +806,8 @@ Case 3 nó giống case 2. Tuy nhiên mình có để ý là
 <img width="576" height="247" alt="{4C3758BF-44DC-41BF-82BD-B1E71E6A4A9B}" src="https://github.com/user-attachments/assets/8e335f94-16d7-46fd-8c85-3e147065e77e" />
 <img width="507" height="228" alt="{4DE0711C-E374-46AB-A952-0A162F9C216E}" src="https://github.com/user-attachments/assets/d7b15ca8-f9f6-4010-a153-fefed2ed3c8b" />
 
-giữa case 2 và case 3 nó có làm cái gì đó với con số kia, thì nó là heap flag, so nó sẽ lấy flags hoặc forceflag 
+giữa case 2 và case 3 nó có làm cái gì đó với con số kia, thì nó là heap flag, nó sẽ lấy flags hoặc forceflag. Trong TH này case 2 đang lấy flag và case 3 là forceflag
+cả ở cả case 2 và case 3 dl đang là 1
 
 `CASE 4`
 
@@ -711,11 +815,17 @@ Case 4 sau khi mình debug thì có những cái này
 
 <img width="407" height="336" alt="{6C22BABB-512A-4BB6-A544-3785E73E60E5}" src="https://github.com/user-attachments/assets/5c09f6d6-bda7-4662-a370-07c9ebc34023" />
 
+ct sẽ đúng khi flow nó vào đây 
+
+<img width="1071" height="373" alt="{7B683A1D-6B06-4E3C-8B7F-C5A42B418961}" src="https://github.com/user-attachments/assets/edfb7da5-cab2-4634-b9a8-64d3891dbfec" />
+
+dl ở đây sẽ là 0
+
 `CASE 5`
 
 <img width="739" height="350" alt="{8B38EA76-98C9-4186-AF67-F1CBAA844F56}" src="https://github.com/user-attachments/assets/05145785-5d97-4965-8426-0f734494032e" />
 
-dùng process để xem có đang bị debug không
+dùng process để xem có đang bị debug không, dl của mình ở đây đang là 0
 
 `CASE 6`
 
@@ -775,9 +885,13 @@ bool __fastcall sub_931AA0(int a1, char a2, int a3)
   return byte_93329F[++*(_DWORD *)(a1 + 556)] == (char)(a2 ^ v9);
 }
 ```
+dl của chúng ta sẽ là 1
+
 `CASE 7`
 
 <img width="1333" height="154" alt="{14E349A3-90E3-46BE-B2B3-08C4B50EC960}" src="https://github.com/user-attachments/assets/f652e7b2-5f86-4660-add1-ff7580386bf6" />
+
+`NtQueryInformationProcess` tiếp, sau khi bypass dl của chúng ta là 1
 
 sau tất cả các cases, chương trình chủ yếu là đang lấy cái này
 
