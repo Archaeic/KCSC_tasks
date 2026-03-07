@@ -1345,7 +1345,7 @@ vào main thì nó sẽ trông như này
 
 <img width="686" height="695" alt="{68B38145-01CB-4B97-9A19-11FC6F2963CF}" src="https://github.com/user-attachments/assets/c878362b-73cb-4a38-8c0b-0b6a5047b822" />
 
-nói chung thì chương trình đang làm rối, nếu ct đang ko bị debug thì nó sẽ vô `TopLevelExceptionFilter`
+Đầu tiên thì ct làm các phép tính toán với `0DEADBEEF`, cộng trừ nhân sao cho giữ nguyên var_4 = 0 sau đó idiv sẽ lấy 0 chia 0, trong khi đó 0 chia 0 sẽ không được nên nó sẽ tạo lỗi exception. `unhandled_exception_filter` sẽ bị bắt và nó dẫn vào `TopLevelExceptionFilter`
 
 <img width="884" height="459" alt="{6B7A71ED-8E62-4371-88B0-8E97296F3F6C}" src="https://github.com/user-attachments/assets/beed7ea8-fbed-45dc-8cb1-7da799730488" />
 
