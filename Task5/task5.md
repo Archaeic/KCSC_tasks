@@ -258,10 +258,15 @@ xor rax, rax
 div rax
 ```
 CPU sẽ bị lỗi `integer division by zero exception` lỗi này cũng được kích hoạt bởi `div rax` ban nãy. Sau đó win sẽ gọi tự exception handler 
+
 Tiếp theo, `div rax` có bytes là `48 F7 F0` nhưng tác giả lại thêm 1 byte `E9` nữa
+
 Vậy logic là `div rax` chia 0 = lỗi -> exception -> exception handler -> `rax` = API call
-Vậy mình sẽ ngồi mò hết đống API này :sob: 
+
+Vậy mình sẽ ngồi mò hết đống API này :sob:
+
 Những API mà mình tìm được là
+
 ```
 LoadLibraryW
 memset
@@ -282,8 +287,8 @@ Hàm `sub_7FF6D6F31640` là nơi tạo key/thuật toán
 ![{42E2AF04-24D7-46BA-B963-B2ED6841F67E}](https://hackmd.io/_uploads/S1LNr2Iqbg.png)
 Sau khi giải xong nó sẽ tự xóa key.
 ![{E9382D77-F4C5-4DF7-A61F-0210D72141C8}](https://hackmd.io/_uploads/ByKh06Lq-g.png)
-Ở khúc này mình có 1 doạn loop, loop hết ta được một url 
-(https://www.youtube.com/watch?v=dQw4w9WgXcQ) 
+Ở khúc này mình có 1 doạn loop, loop hết ta được một url (https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+
 Nếu chúng ta chạy xuống chút nữa thì ct sẽ xóa nó ;/
 ![{99C7BDBC-9ACC-4A68-BFD0-5570CF34F319}](https://hackmd.io/_uploads/B1ktkRU5Zx.png)
 
@@ -454,7 +459,9 @@ v8 = NumberOfBytesRead;
           Buffer[v11] ^= *((_BYTE *)&v15 + (int)v11 % 32);
 ```
 Nghĩ rằng có thể tạo solver luôn, nhưng ở phần asm nó có một đoạn code như vậy nhìn khá là lạ
+
 ![{73819804-0EFE-459C-B4E2-F384FB705113}](https://hackmd.io/_uploads/HkfwKDcqZx.png)
+
 nên mình sẽ patch `IsDebuggerPresent` và vào xem nó làm gì
 
 ![image](https://hackmd.io/_uploads/ByHLiPc9-g.png)
