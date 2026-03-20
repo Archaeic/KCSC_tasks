@@ -1,0 +1,718 @@
+# Task 5: Resolve API
+
+### Yêu cầu
+> #### Tìm hiểu và code chương trình thực hiện resolve windows api và gọi messagebox, lưu ý tất cả các hàm winapi phải thực hiện resolve, code cả c và asm (giải thích rõ ràng ý tưởng, code)
+
+## Resolve API
+- Resolve API là kĩ thuật mà chương trình không import API trực tiếp mà tự tìm địa chỉ của API.
+
+Ý tưởng:
+Sử dụng `GetModuleHandleA` để lấy địa chỉ của dll.
+Ex: 
+```cpp!
+ HMODULE kernel32dll  = GetModuleHandleA("kernel32.dll");
+```
+Sau đó dùng `GetProcAddress` để resolve
+Ex:
+```cpp!
+myIsDebuggerPresent  = GetProcAddress(kernel32dll, "IsDebuggerPresent");
+```
+### GetModuleHandleA
+Vậy `GetModuleHandleA` hoạt động như thế nào? 
+1. Truy cập PEB của process
+2. Xác định `InMemoryOrderModuleList` trong cấu trúc Ldr của PEB 
+3. Lặp qua danh sách liên kết của các module đã được load
+4. So sánh base name của từng module với tên module mong muốn
+5. Nếu tìm thấy trùng khớp, trả về địa chỉ base (đóng vai trò như handle) của module đó
+
+
+Code ([nguồn](https://cocomelonc.github.io/malware/2023/04/08/malware-av-evasion-15.html))
+```clike
+HMODULE myGetModuleHandle(LPCWSTR lModuleName) {
+
+    PEB* pPeb = (PEB*)__readgsqword(0x60);
+// Lấy model đc load vào process
+    PEB_LDR_DATA* Ldr = pPeb->Ldr;
+    LIST_ENTRY* ModuleList = &Ldr->InMemoryOrderModuleList;
+
+    LIST_ENTRY* pStartListEntry = ModuleList->Flink;
+
+    WCHAR mystr[MAX_PATH] = { 0 };
+    WCHAR substr[MAX_PATH] = { 0 };
+    for (LIST_ENTRY* pListEntry = pStartListEntry; pListEntry != ModuleList; pListEntry = pListEntry->Flink) {
+ // lấy address của LDR_DATA_TABLE_ENTRY hiện tại
+        LDR_DATA_TABLE_ENTRY* pEntry = (LDR_DATA_TABLE_ENTRY*)((BYTE*)pListEntry - sizeof(LIST_ENTRY));
+// check xem cái có phải dll mình cần 
+        memset(mystr, 0, MAX_PATH * sizeof(WCHAR));
+        memset(substr, 0, MAX_PATH * sizeof(WCHAR));
+        wcscpy(mystr, pEntry->FullDllName.Buffer);
+        wcscpy(substr, lModuleName);
+        if (cmpUnicodeStr(substr, mystr)) {
+            return (HMODULE)pEntry->DllBase;
+        }
+    }
+
+    printf("failed to get a handle to %ls\n", lModuleName);
+    return NULL;
+}
+```
+### GetProcAddress
+`GetProcAddress` là 1 hàm Windows API lấy địa chỉ của 1 function đã đc xuất ra hoặc 1 biến từ dll nhất định. Đây nó đc sử dụng để load function từ dll trong runtime 
+
+```cpp!
+FARPROC GetProcAddress(
+  HMODULE hModule,
+  LPCSTR  lpProcName
+);
+```
+- `hModule` - Là handle của DLL module, chứa functions hoặc biến. Function `LoadLibrary` trả lại handle này 
+- `lpProcName` - Tên function hoặc biến dưới dạng chuỗi kết thúc bằng ký tự null, hoặc giá trị thứ tự của function. Nếu tham số này là một giá trị thứ tự, nó phải nằm trong low-order, và high-order word phải bằng không.
+```cpp
+FARPROC myGetProcAddress(HMODULE hModule, LPCSTR lpProcName) {
+  PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)hModule;
+  PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((BYTE*)hModule + dosHeader ->e_lfanew);
+  PIMAGE_EXPORT_DIRECTORY exportDirectory = (PIMAGE_EXPORT_DIRECTORY)((BYTE*)hModule + 
+  ntHeaders ->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+
+  DWORD* addressOfFunctions = (DWORD*)((BYTE*)hModule + exportDirectory->AddressOfFunctions);
+  WORD* addressOfNameOrdinals = (WORD*)((BYTE*)hModule + exportDirectory->AddressOfNameOrdinals);
+  DWORD* addressOfNames = (DWORD*)((BYTE*)hModule + exportDirectory->AddressOfNames);
+
+  for (DWORD i = 0; i < exportDirectory->NumberOfNames; ++i) {
+    if (strcmp(lpProcName, (const char*)hModule + addressOfNames[i]) == 0) {
+      return (FARPROC)((BYTE*)hModule + addressOfFunctions[addressOfNameOrdinals[i]]);
+    }
+  }
+
+  return NULL;
+}
+```
+1. Lấy header của DOZ và NT:
+-- Đổi base address của `hModule` thành pointer `PIMAGE_DOS_HEADER` và sử dụng nó để xác định address của cấu trúc `PIMAGE_NT_HEADERS` bằng cách cộng `e_lfanew` field vào base address
+2. Tìm export directory:
+-- Sử dụng `OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress` từ cấu trúc `PIMAGE_NT_HEADERS`để tìm cấu trúc `PIMAGE_EXPORT_DIRECTORY`
+3. Lấy pointer tới export table:
+-- Lấy pointer đến các table `AddressOfFunctions`, `AddressOfNameOrdinals` và `AddressOfNames` bằng cách sử dụng các trường tương ứng của cấu trúc `PIMAGE_EXPORT_DIRECTORY` và base address của module.
+4. Lặp, tìm các tên:
+-- Lặp qua `AddressOfNames` tối đa `NumberOfNames` lần, và so sánh từng tên function với tên function cần có (lpProcName) bằng hàm `strcmp`.
+5. Tìm địa chỉ function: 
+-- Nếu tên hàm khớp, tìm ordinal của function bằng cách tra cứu bảng `AddressOfNameOrdinals`, và sử dụng số đó để tra cứu bảng `AddressOfFunctions`. Tính toán address của function bằng cách cộng base address của module với virtual address (RVA) của function.
+
+Kết hợp cả 2 đoạn lại
+```cpp
+#include <stdlib.h>
+#include <stdio.h>
+#include <windows.h>
+#include <winternl.h>
+#include <shlwapi.h>
+#include <string.h>
+
+#pragma comment(lib, "Shlwapi.lib")
+
+int cmpUnicodeStr(WCHAR substr[], WCHAR mystr[]) {
+    _wcslwr_s(substr, MAX_PATH);
+    _wcslwr_s(mystr, MAX_PATH);
+
+    int result = 0;
+    if (StrStrW(mystr, substr) != NULL) {
+        result = 1;
+    }
+
+    return result;
+}
+
+typedef UINT(CALLBACK* fnMessageBoxA)(
+    HWND   hWnd,
+    LPCSTR lpText,
+    LPCSTR lpCaption,
+    UINT   uType
+    );
+
+HMODULE myGetModuleHandle(LPCWSTR lModuleName) {
+    PEB* pPeb = (PEB*)__readgsqword(0x60);
+
+    PEB_LDR_DATA* Ldr = pPeb->Ldr;
+    LIST_ENTRY* ModuleList = &Ldr->InMemoryOrderModuleList;
+    LIST_ENTRY* pStartListEntry = ModuleList->Flink;
+
+    WCHAR mystr[MAX_PATH] = { 0 };
+    WCHAR substr[MAX_PATH] = { 0 };
+    for (LIST_ENTRY* pListEntry = pStartListEntry; pListEntry != ModuleList; pListEntry = pListEntry->Flink) {
+        LDR_DATA_TABLE_ENTRY* pEntry = (LDR_DATA_TABLE_ENTRY*)((BYTE*)pListEntry - sizeof(LIST_ENTRY));
+
+        memset(mystr, 0, MAX_PATH * sizeof(WCHAR));
+        memset(substr, 0, MAX_PATH * sizeof(WCHAR));
+        wcscpy_s(mystr, MAX_PATH, pEntry->FullDllName.Buffer);
+        wcscpy_s(substr, MAX_PATH, lModuleName);
+        if (cmpUnicodeStr(substr, mystr)) {
+            return (HMODULE)pEntry->DllBase;
+        }
+    }
+    return NULL;
+}
+
+FARPROC myGetProcAddress(HMODULE hModule, LPCSTR lpProcName) {
+    PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)hModule;
+    PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((BYTE*)hModule + dosHeader->e_lfanew);
+    PIMAGE_EXPORT_DIRECTORY exportDirectory = (PIMAGE_EXPORT_DIRECTORY)((BYTE*)hModule +
+        ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+
+    DWORD* addressOfFunctions = (DWORD*)((BYTE*)hModule + exportDirectory->AddressOfFunctions);
+    WORD* addressOfNameOrdinals = (WORD*)((BYTE*)hModule + exportDirectory->AddressOfNameOrdinals);
+    DWORD* addressOfNames = (DWORD*)((BYTE*)hModule + exportDirectory->AddressOfNames);
+
+    for (DWORD i = 0; i < exportDirectory->NumberOfNames; ++i) {
+        if (strcmp(lpProcName, (const char*)hModule + addressOfNames[i]) == 0) {
+            return (FARPROC)((BYTE*)hModule + addressOfFunctions[addressOfNameOrdinals[i]]);
+        }
+    }
+
+    return NULL;
+}
+
+int main(int argc, char* argv[]) {
+    HMODULE mod = myGetModuleHandle(L"user32.dll");
+    if (NULL == mod) {
+        return -2;
+    }
+    else {
+        printf("dc");
+    }
+
+    fnMessageBoxA myMessageBoxA = (fnMessageBoxA)myGetProcAddress(mod, "MessageBoxA");
+    myMessageBoxA(NULL, "asm la gi", ".....", MB_OK);
+    return 0;
+}
+```
+
+# Sub task
+### VEH
+Mới vào chương trình dẫn mình đến đoạn này 
+```asm 
+.text:00007FF6D2862540 push    rsi
+.text:00007FF6D2862541 sub     rsp, 20h
+.text:00007FF6D2862545 call    sub_7FF6D28611F0
+.text:00007FF6D286254A mov     cs:dword_7FF6D2865108, 0
+.text:00007FF6D2862554 mov     ecx, 0C11AD5C5h
+.text:00007FF6D2862559 mov     edx, 145370BBh
+.text:00007FF6D286255E call    sub_7FF6D2861000
+.text:00007FF6D2862563 lea     rdx, sub_7FF6D28611A0
+.text:00007FF6D286256A mov     ecx, 1
+.text:00007FF6D286256F call    rax
+.text:00007FF6D2862571 mov     cs:dword_7FF6D286510C, 0
+.text:00007FF6D286257B mov     r8, 0FFFFFFFFE3B9876Ah
+.text:00007FF6D2862582 mov     r9, 29CDD463h
+.text:00007FF6D2862589 xor     rax, rax
+.text:00007FF6D286258C div     rax
+.text:00007FF6D286258C ; ---------------------------------------------------------------------------
+.text:00007FF6D286258F db 0E9h
+.text:00007FF6D2862590 db  48h ; H
+.text:00007FF6D2862591 db  89h
+.text:00007FF6D2862592 db 0C6h
+.text:00007FF6D2862593 ; ---------------------------------------------------------------------------
+.text:00007FF6D2862593 mov     ecx, 0FFFFFFF6h
+.text:00007FF6D2862598 call    rax
+.text:00007FF6D286259A mov     cs:qword_7FF6D28650F8, rax
+.text:00007FF6D28625A1 mov     ecx, 0FFFFFFF5h
+.text:00007FF6D28625A6 call    rsi
+.text:00007FF6D28625A8 mov     cs:qword_7FF6D2865100, rax
+.text:00007FF6D28625AF mov     cs:dword_7FF6D2865110, 0
+.text:00007FF6D28625B9 add     rsp, 20h
+.text:00007FF6D28625BD pop     rsi
+.text:00007FF6D28625BE retn
+.text:00007FF6D28625BE sub_7FF6D2862540 endp ; sp-analysis failed
+```
+Ở đoạn này 
+```asm
+.text:00007FF6D2862554 mov     ecx, 0C11AD5C5h
+.text:00007FF6D2862559 mov     edx, 145370BBh
+.text:00007FF6D286255E call    sub_7FF6D2861000
+.text:00007FF6D2862563 lea     rdx, sub_7FF6D28611A0
+.text:00007FF6D286256A mov     ecx, 1
+.text:00007FF6D286256F call    rax
+```
+Chương trình thực hiện call API resolver và call resolved API `ntdll_RtlAddVectoredExceptionHandler` là API mà đoạn code đã call, vậy chương trình đã cài exception handler
+Tiếp theo 
+```asm 
+mov r8, 0FFFFFFFFE3B9876Ah
+mov r9, 29CDD463h
+xor rax, rax
+div rax
+```
+Chương trình `div rax` trong khi rax = 0, vì vậy sẽ tạo lỗi `divide by zero exception` và kích hoạt `AddVectoredExceptionHandler` thế nên flow sẽ được tiếp tục trong `sub_7FF6D28611A0`
+```cpp
+__int64 __fastcall sub_7FF6D28611A0(__int64 a1)
+{
+  *(_QWORD *)(*(_QWORD *)(a1 + 8) + 120LL) = sub_7FF6D2861000(
+                                               *(_DWORD *)(*(_QWORD *)(a1 + 8) + 184LL),
+                                               *(_DWORD *)(*(_QWORD *)(a1 + 8) + 192LL));
+  *(_QWORD *)(*(_QWORD *)(a1 + 8) + 248LL) += 4LL;
+  return 0xFFFFFFFFLL;
+}
+```
+Theo như các chuyên gia phân tích thì ở đây chương trình thực hiện 
+```asm
+mov r8, func_hash
+mov r9, module_hash
+xor rax, rax
+div rax
+```
+CPU sẽ bị lỗi `integer division by zero exception` lỗi này cũng được kích hoạt bởi `div rax` ban nãy. Sau đó win sẽ gọi tự exception handler 
+Tiếp theo, `div rax` có bytes là `48 F7 F0` nhưng tác giả lại thêm 1 byte `E9` nữa
+Vậy logic là `div rax` chia 0 = lỗi -> exception -> exception handler -> `rax` = API call
+Vậy mình sẽ ngồi mò hết đống API này :sob: 
+Những API mà mình tìm được là
+```
+LoadLibraryW
+memset
+memcmp
+memcpy
+WriteFile
+ReadFile
+CryptReleaseContext
+CryptDestroyKey
+CryptImportKey
+CryptAcquireContextA
+CryptSetKeyParam
+CryptEncrypt
+GetLastError
+```
+
+Hàm `sub_7FF6D6F31640` là nơi tạo key/thuật toán
+![{42E2AF04-24D7-46BA-B963-B2ED6841F67E}](https://hackmd.io/_uploads/S1LNr2Iqbg.png)
+Sau khi giải xong nó sẽ tự xóa key.
+![{E9382D77-F4C5-4DF7-A61F-0210D72141C8}](https://hackmd.io/_uploads/ByKh06Lq-g.png)
+Ở khúc này mình có 1 doạn loop, loop hết ta được một url 
+(https://www.youtube.com/watch?v=dQw4w9WgXcQ) 
+Nếu chúng ta chạy xuống chút nữa thì ct sẽ xóa nó ;/
+![{99C7BDBC-9ACC-4A68-BFD0-5570CF34F319}](https://hackmd.io/_uploads/B1ktkRU5Zx.png)
+
+Ở khúc này 
+![{EBF6EF3C-0CE8-457F-9F79-417BCECE72C2}](https://hackmd.io/_uploads/ByrnoALq-g.png)
+Ct có gọi `CryptSetKeyParam` và số byte của nó là 16 từ 1 -> 16 vậy đây là Initialization Vector
+Tiếp theo mình phát hiện đoạn này
+![{0F1D9638-1661-478A-B91E-69C25EABC01B}](https://hackmd.io/_uploads/H1mopAL5Zg.png)
+Nó có gọi `sub_7FF6D6F319A0` là AES, có length là 32 và nó có resolve memcmp `memcmp(encrypted_output, this, 32)` vậy `unk_7FF6D6F35000` là ciphertext của chúng ta
+```py
+#from gpt with luv
+import hashlib
+from Crypto.Cipher import AES
+
+url   = b"https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+key   = hashlib.sha256(url).digest()
+IV    = bytes(range(1, 17)) 
+ciphertext    = bytes.fromhex("e560440942c4bbdef6a12d93d91d1372af8d4cf7a79f1fb999689cb8c24c4f85")
+
+cipher = AES.new(key, AES.MODE_CBC, IV)
+pt     = cipher.decrypt(ciphertext)
+#padding (1 byte of 0x01)
+flag   = pt[:-pt[-1]]
+print(flag)
+```
+![{398AFA2A-1308-4D1A-A064-D8812AFDEE35}](https://hackmd.io/_uploads/rk48lJDcbg.png)
+
+
+### Wannaflag
+Vào main
+```ccp
+int __cdecl main(int argc, const char **argv, const char **envp)
+{
+  char *v3; // esi
+  HANDLE FileA; // esi
+  DWORD v5; // esi
+  DWORD v6; // edi
+  DWORD v7; // eax
+  DWORD v8; // edx
+  DWORD v9; // esi
+  CHAR *v10; // edi
+  DWORD v11; // ecx
+  int result; // eax
+  DWORD NumberOfBytesRead; // [esp+10h] [ebp-808h] BYREF
+  _BYTE v14[192]; // [esp+18h] [ebp-800h] BYREF
+  int v15; // [esp+D8h] [ebp-740h] BYREF
+  int v16; // [esp+DCh] [ebp-73Ch]
+  int v17; // [esp+E0h] [ebp-738h]
+  int v18; // [esp+E4h] [ebp-734h]
+  int v19; // [esp+E8h] [ebp-730h]
+  int v20; // [esp+ECh] [ebp-72Ch]
+  int v21; // [esp+F0h] [ebp-728h]
+  int i; // [esp+F4h] [ebp-724h]
+  CHAR Filename[264]; // [esp+F8h] [ebp-720h] BYREF
+  CHAR Buffer[1024]; // [esp+308h] [ebp-510h] BYREF
+  CHAR FileName[268]; // [esp+708h] [ebp-110h] BYREF
+
+  memset(Buffer, 0, sizeof(Buffer));
+  GetModuleFileNameA(0, Filename, 0x104u);
+  if ( IsDebuggerPresent() )
+    goto LABEL_24;
+  v3 = strrchr(Filename, 92);
+  if ( IsDebuggerPresent() )
+    goto LABEL_24;
+  if ( v3 )
+    v3[1] = 0;
+  sub_231360(FileName, 0x104u, "%s%s", (char)Filename);
+  FileA = CreateFileA(FileName, 0x80000000, 0, 0, 3u, 0, 0);
+  if ( IsDebuggerPresent() )
+    goto LABEL_24;
+  if ( FileA != (HANDLE)-1 && ReadFile(FileA, Buffer, 0x400u, &NumberOfBytesRead, 0) )
+  {
+    CloseHandle(FileA);
+    v5 = 16 - (NumberOfBytesRead & 0xF);
+    if ( !IsDebuggerPresent() )
+    {
+      v6 = 0;
+      if ( v5 )
+      {
+        v6 = v5;
+        memset(&Buffer[NumberOfBytesRead], v5, v5);
+      }
+      v7 = v6 + NumberOfBytesRead;
+      NumberOfBytesRead = v7;
+      if ( v7 >= 0x400 )
+        __report_rangecheckfailure();
+      Buffer[v7] = 0;
+      v15 = -1448796403;
+      v16 = -2133891425;
+      v17 = 1676089180;
+      v18 = -1110616710;
+      v19 = -426315469;
+      v20 = 1338778897;
+      v21 = -1038548038;
+      i = -738310864;
+      AES_key_expansion(v14, &v15);
+      if ( !IsDebuggerPresent() )
+      {
+        v8 = NumberOfBytesRead;
+        v9 = NumberOfBytesRead >> 4;
+        if ( NumberOfBytesRead >> 4 )
+        {
+          v10 = Buffer;
+          do
+          {
+            AES_encrypt(v10, v14);
+            v10 += 16;
+            --v9;
+          }
+          while ( v9 );
+          v8 = NumberOfBytesRead;
+        }
+        v11 = 0;
+        v15 = 1029662604;
+        v16 = 837762801;
+        v17 = -682434832;
+        v18 = -1806848824;
+        v19 = -524838890;
+        v20 = 220915250;
+        v21 = -1681108108;
+        for ( i = 982145798; v11 < v8; ++v11 )
+          Buffer[v11] ^= *((_BYTE *)&v15 + (int)v11 % 32);
+        if ( !IsDebuggerPresent() && !IsDebuggerPresent() && !IsDebuggerPresent() )
+        {
+          result = (int)Buffer;
+          MEMORY[0] = 0;
+          return result;
+        }
+      }
+    }
+LABEL_24:
+    ExitProcess(0xFFFFFFFF);
+  }
+  return 1;
+}
+```
+Đầu tiên mình thấy được chương trình đang mã hóa file `fl4g_f0r_y0u.txt` 2 lần 
+Lần 1 
+```cpp
+      v7 = v6 + NumberOfBytesRead;
+      NumberOfBytesRead = v7;
+      if ( v7 >= 1024 )
+        __report_rangecheckfailure();
+      Buffer[v7] = 0;
+      v15 = -1448796403;
+      v16 = -2133891425;
+      v17 = 1676089180;
+      v18 = -1110616710;
+      v19 = -426315469;
+      v20 = 1338778897;
+      v21 = -1038548038;
+      i = -738310864;
+      sub_231000(v14, &v15);
+```
+Lần 2
+```cpp
+v8 = NumberOfBytesRead;
+        }
+        v11 = 0;
+        v15 = 1029662604;
+        v16 = 837762801;
+        v17 = -682434832;
+        v18 = -1806848824;
+        v19 = -524838890;
+        v20 = 220915250;
+        v21 = -1681108108;
+        for ( i = 982145798; v11 < v8; ++v11 )
+          Buffer[v11] ^= *((_BYTE *)&v15 + (int)v11 % 32);
+```
+Nghĩ rằng có thể tạo solver luôn, nhưng ở phần asm nó có một đoạn code như vậy nhìn khá là lạ
+![{73819804-0EFE-459C-B4E2-F384FB705113}](https://hackmd.io/_uploads/HkfwKDcqZx.png)
+nên mình sẽ patch `IsDebuggerPresent` và vào xem nó làm gì
+
+![image](https://hackmd.io/_uploads/ByHLiPc9-g.png)
+Khi  xuống `mov [ecx], ecx` thanh ecx của mình là 0 nên ct sẽ ghi vào NULL và tạo exception
+
+Và ở TLSCallBack
+```cpp
+PVOID __stdcall TlsCallback_0(int a1, int a2, int a3)
+{
+  return AddVectoredExceptionHandler(1u, Handler);
+}
+```
+Mình thấy handler đã được đăng kí trước, vậy thì khi dính exception của `mov [ecx], ecx` ct sẽ nhảy vào `Handler`
+```cpp
+LONG __stdcall Handler(struct _EXCEPTION_POINTERS *ExceptionInfo)
+{
+  PCONTEXT ContextRecord; // ecx
+  PCONTEXT *p_ContextRecord; // edi
+  DWORD Edx; // eax
+  unsigned int Ebx; // esi
+  unsigned int v6; // eax
+  DWORD Eax; // edx
+  DWORD *p_Eax; // ebx
+  unsigned int v9; // ecx
+  DWORD v10; // ebx
+  struct _EXCEPTION_POINTERS *ExceptionInfoa; // [esp+Ch] [ebp+8h]
+
+  if ( ExceptionInfo->ExceptionRecord->ExceptionCode == -1073741819 )
+  {
+    ContextRecord = ExceptionInfo->ContextRecord;
+    p_ContextRecord = &ExceptionInfo->ContextRecord;
+    Edx = ContextRecord->Edx;
+    Ebx = ContextRecord->Ebx;
+    switch ( Edx )
+    {
+      case 0u:
+        *(_BYTE *)(ContextRecord->Eax + Ebx) ^= 0xDu;
+        (*p_ContextRecord)->Eip += 3;
+        return -1;
+      case 1u:
+        *(_BYTE *)(ContextRecord->Eax + Ebx) += 37;
+        (*p_ContextRecord)->Eip += 4;
+        return -1;
+      case 2u:
+        *(_BYTE *)(ContextRecord->Eax + Ebx) -= 37;
+        (*p_ContextRecord)->Eip += 5;
+        return -1;
+      case 3u:
+        *(_BYTE *)(ContextRecord->Eax + Ebx) ^= 0x25u;
+        (*p_ContextRecord)->Eip += 3;
+        return -1;
+      case 4u:
+        *(_BYTE *)(ContextRecord->Eax + Ebx) += 13;
+        (*p_ContextRecord)->Eip += 4;
+        return -1;
+      case 5u:
+        *(_BYTE *)(ContextRecord->Eax + Ebx) -= 13;
+        (*p_ContextRecord)->Eip += 5;
+        return -1;
+    }
+    if ( Edx != 6 )
+      return -1;
+    v6 = 0;
+    if ( !Ebx )
+      goto LABEL_30;
+    if ( Ebx < 8 )
+      goto LABEL_29;
+    Eax = ContextRecord->Eax;
+    ExceptionInfoa = (struct _EXCEPTION_POINTERS *)(Eax + Ebx - 1);
+    p_Eax = &ContextRecord->Eax;
+    if ( Eax <= (unsigned int)p_ContextRecord && ExceptionInfoa >= (struct _EXCEPTION_POINTERS *)p_ContextRecord )
+      goto LABEL_29;
+    if ( Eax <= (unsigned int)p_Eax && ExceptionInfoa >= (struct _EXCEPTION_POINTERS *)p_Eax )
+      goto LABEL_29;
+    if ( Ebx >= 0x40 )
+    {
+      v9 = ContextRecord->Ebx & 0x3F;
+      do
+      {
+        *(__m128i *)(Eax + v6) = _mm_andnot_si128(*(__m128i *)(Eax + v6), (__m128i)xmmword_237390);
+        *(__m128i *)(Eax + v6 + 16) = _mm_andnot_si128(*(__m128i *)(Eax + v6 + 16), (__m128i)xmmword_237390);
+        *(__m128i *)(Eax + v6 + 32) = _mm_andnot_si128(*(__m128i *)(Eax + v6 + 32), (__m128i)xmmword_237390);
+        *(__m128i *)(Eax + v6 + 48) = _mm_andnot_si128(*(__m128i *)(Eax + v6 + 48), (__m128i)xmmword_237390);
+        v6 += 64;
+      }
+      while ( v6 < Ebx - v9 );
+      if ( v9 < 8 )
+      {
+LABEL_28:
+        while ( v6 < Ebx )
+        {
+LABEL_29:
+          *(_BYTE *)((*p_ContextRecord)->Eax + v6) = ~*(_BYTE *)((*p_ContextRecord)->Eax + v6);
+          ++v6;
+        }
+LABEL_30:
+        (*p_ContextRecord)->Eip += 4;
+        return -1;
+      }
+      ContextRecord = *p_ContextRecord;
+    }
+    v10 = ContextRecord->Eax;
+    do
+    {
+      *(_QWORD *)(v10 + v6) = _mm_andnot_si128(_mm_loadl_epi64((const __m128i *)(v10 + v6)), (__m128i)xmmword_237390).m128i_u64[0];
+      v6 += 8;
+    }
+    while ( v6 < Ebx - (Ebx & 7) );
+    goto LABEL_28;
+  }
+  return 0;
+}
+```
+Vậy mình đã có hết dữ kiện, phần crypto khá mù nên mình feed AI 
+```py
+import sys, struct
+from Crypto.Cipher import AES
+
+XOR_KEY = b''.join(struct.pack('<I', x) for x in [
+    0x3D5F678C, 0x31EF3EF1, 0xD752DEF0, 0x944DACC8,
+    0xE0B79816, 0x0D2AE632, 0x9BCC5374, 0x3A8A5B06
+])
+
+VEH_OPS = [
+    (28,4),(33,1),(26,6),(23,0),(28,5),(3,1),(27,6),(40,6),(26,2),(13,5),(2,3),
+    (32,6),(9,5),(29,4),(19,2),(21,0),(15,0),(45,2),(16,6),(33,2),(6,1),(11,2),
+    (2,5),(10,1),(47,4),(4,5),(44,0),(36,3),(29,2),(20,1),(21,1),(41,3),(28,2),
+    (35,6),(21,0),(7,3),(11,3),(16,5),(26,1),(12,3),(4,2),(26,0),(7,5),(8,3),
+    (12,3),(37,6),(33,0),(11,3),(44,5),(22,4),(23,4),(5,2),(13,3),(8,4),(35,6),
+    (23,5),(36,4),(26,5),(5,1),(13,3),(6,4),(9,4),(16,4),(11,2),(0,1),(1,2),
+    (42,6),(4,1),(29,0),(43,1),(42,5),(35,2),(2,4),(36,3),(39,6),(20,3),(40,5),
+    (40,2),(40,0),(5,4),(9,4),(40,4),(30,5),(31,2),(46,6),(41,1),(36,5),(38,1),
+    (7,3),(22,3),(7,0),(42,1),(4,6),(36,3),(37,5),(15,5),(39,1),(41,2),(19,0),
+    (4,5),(20,2),(7,2),(4,6),(30,4),(7,1),(38,0),(36,1),(40,6),(28,4),(15,2),
+    (30,4),(38,0),(19,3),(40,6),(0,5),(22,5),(46,0),(11,6),(25,6),(42,0),(7,1),
+    (18,0),(0,0),(22,0),(35,2),(2,1),(32,4),(0,2),(30,3),(10,0),(40,0),(35,3),
+    (47,4),(33,3),(14,2),(10,5),(9,4),(44,2),(17,2),(25,0),(21,3),(9,2),(15,5),
+    (36,3),(40,2),(39,4),(30,2),(15,3),(39,4),(4,0),(6,3),(36,2),(22,3),(31,5),
+    (23,5),(27,3),(40,3),(6,4),(25,2),(31,0),(35,3),(26,0),(42,0),(42,6),(41,6),
+    (30,1),(19,0),(39,4),(14,1),(25,4),(10,4),(5,1),(25,0),(33,2),(15,1),(3,2),
+    (28,1),(17,4),(34,3),(26,0),(39,6),(13,4),(29,0),(19,5),(33,4),(6,3),(24,6),
+    (41,1),(47,3),(13,5),(4,4),(10,2),(25,4),(0,6),(3,4),(24,6),(21,3),(42,2),
+    (13,1),(14,5),(3,4),(26,0),(47,5),(31,5),(0,2),(16,1),(46,5),(13,5),(27,3),
+    (31,2),(38,6),(40,5),(32,3),(8,6),(0,5),(7,0),(47,0),(29,2),(11,2),(19,6),
+    (29,4),(19,4),(31,0),(45,6),(22,6),(25,3),(44,4),(23,0),(42,1),(10,5),(21,2),
+    (35,6),(27,6),(1,6),(45,0),(20,4),(44,2),(11,6),(19,1),(13,4),(42,2),(36,3),
+    (36,3),(33,6),(39,6),(16,1),(23,3),(22,1),(40,5),(20,4),(33,5),(21,4),(35,0),
+    (40,2),(18,2),(38,1),(31,6),(22,3),(18,0),(34,5),(7,3),(20,4),(1,2),(43,1),
+    (7,5),(35,5),(4,1),(13,6),(44,4),(25,6),(29,3),(3,1),(12,6),(22,5),(27,0),
+    (2,5),(11,1),(44,3),(18,4),(9,3),(47,0),(1,5),(25,1),(39,1),(36,4),(29,0),
+    (17,0),(15,6),(25,2),(4,0),(17,0),(19,6),(12,6),(42,4),(37,6),(7,1),(40,3),
+    (42,2),(22,2),(38,4),(47,4),(7,5),(22,6),(20,3),(2,3),(0,5),(16,5),(41,1),
+    (18,2),(37,1),(20,2),(24,0),(15,2),(0,1),(44,3),(0,5),(27,5),(14,2),(0,2),
+    (34,5),(6,5),(42,1),(1,2),(15,6),(39,6),(39,6),(4,6),(8,2),(2,4),(34,6),
+    (0,5),(3,0),(15,0),(44,1),(26,6),(26,5),(2,2),(21,4),(16,1),(45,6),(18,1),
+    (18,3),(9,5),(17,0),(1,0),(3,2),(40,1),(23,4),(6,5),(21,1),(31,4),(15,3),
+    (13,6),(31,3),(46,3),(29,0),(25,6),(30,0),(47,2),(27,4),(32,3),(12,5),(37,3),
+    (31,1),(37,1),(2,4),(10,6),(26,3),(34,0),(33,5),(21,5),(39,4),(28,6),(21,0),
+    (39,2),(36,6),(7,4),(20,1),(15,2),(47,1),(26,0),(25,3),(33,4),(15,3),(40,3),
+    (0,6),(2,1),(26,4),(35,4),(12,5),(27,3),(11,0),(43,5),(2,4),(35,2),(16,2),
+    (14,0),(44,6),(1,5),(4,2),(25,3),(11,1),(17,5),(21,1),(5,1),(38,0),(26,1),
+    (32,2),(31,2),(25,3),(16,4),(9,5),(41,3),(44,2),(14,1),(21,5),(32,3),(6,4),
+    (39,6),(25,4),(41,6),(44,0),(25,0),(43,4),(18,4),(0,2),(20,3),(34,0),(18,4),
+    (28,6),(20,2),(13,2),(20,6),(23,2),(47,6),(12,2),(19,1),(4,5),(16,4),(35,2),
+    (36,2),(9,4),(37,4),(7,3),(42,0),(35,4),(14,2),(26,1),(17,5),(13,4),(24,2),
+    (24,1),(25,2),(22,5),(29,6),(24,1),(28,4),(7,1),(1,0),(2,3),(24,6),(37,6),
+    (30,1),(47,2),(43,2),(39,2),(10,4),(27,0),(34,5),(25,5),(9,5),(1,2),(23,1),
+    (28,0),(13,2),(13,4),(40,5),(20,5),(40,1),(25,4),(5,0),(12,6),(31,1),(0,2),
+    (21,1),(19,4),(28,2),(28,0),(4,3),(1,6),(33,3),(41,2),(7,0),(4,4),(3,0),
+    (37,4),(39,2),(12,4),(42,6),(44,2),(16,3),(31,3),(39,0),(26,3),(6,0),(14,5),
+    (34,5),(41,0),(38,0),(32,1),(27,0),(5,0),(35,4),(27,0),(14,2),(3,3),(5,0),
+    (38,0),(31,6),(29,6),(18,5),(11,1),(8,4),(46,5),(5,6),(42,1),(47,1),(17,2),
+    (6,1),(22,0),(41,3),(38,4),(3,5),(16,6),(10,2),(0,2),(41,1),(16,6),(47,1),
+    (11,0),(23,1),(27,2),(5,5),(31,0),(18,4),(6,2),(24,0),(46,1),(26,3),(29,1),
+    (4,6),(10,2),(32,2),(17,3),(2,0),(23,0),(35,3),(2,0),(16,1),(10,1),(46,6),
+    (3,4),(33,3),(24,6),(30,1),(33,2),(4,1),(6,0),(38,5),(47,3),(40,2),(46,1),
+    (10,3),(9,1),(9,1),(22,3),(19,0),(30,4),(20,6),(44,6),(15,3),(23,2),(35,1),
+    (1,5),(41,3),(28,0),(46,6),(43,4),(23,2),(13,3),(21,6),(38,5),(1,1),(41,4),
+    (11,2),(3,1),(31,4),(33,6),(6,3),(43,2),(22,6),(39,4),(40,1),(25,1),(4,5),
+    (26,6),(5,2),(8,4),(31,4),(13,1),(17,3),(2,6),(40,2),(5,2),(39,4),(34,0),
+    (15,1),(9,4),(13,5),(29,3),(15,1),(45,3),(22,4),(7,1),(26,5),(2,6),(40,1),
+    (10,4),(4,1),(38,1),(38,3),(5,5),(8,2),(21,1),(39,4),(40,6),(4,0),(8,3),
+    (6,5),(4,1),(39,4),(13,0),(32,4),(22,4),(16,1),(13,0),(25,6),(46,6),(35,2),
+    (29,5),(15,5),(7,4),(33,5),(24,0),(27,3),(13,6),(40,6),(18,2),(47,6),(46,1),
+    (36,2),(33,1),(25,5),(18,1),(25,4),(6,1),(20,3),(38,0),(22,5),(36,4),(17,4),
+    (6,1),(39,3),(4,5),(4,1),(22,3),(41,5),(45,1),(34,0),(19,3),(26,6),(47,5),
+    (34,4),(19,3),(7,1),(21,6),(6,4),(0,0),(28,3),(6,3),(41,3),(42,1),(36,3),
+    (35,6),(15,3),(40,5),(45,2),(2,5),(37,2),(8,3),(27,3),(16,3),(37,3),(45,3),
+    (17,0),(45,4),(3,6),(27,3),(14,6),(25,5),(43,2),(44,2),(9,6),(19,3),(0,6),
+    (28,6),(32,5),(36,4),(18,0),(16,2),(6,0),(1,5),(25,5),(40,3),(34,4),(46,4),
+    (7,5),(5,6),(15,3),(8,1),(45,1),(45,3),(4,3),(38,0),(6,5),(42,2),(31,3),
+    (42,4),(39,1),(30,4),(16,1),(0,0),(22,3),(43,5),(6,5),(8,2),(21,6),(21,2),
+    (46,1),(39,5),(24,1),(26,6),(20,2),(38,4),(33,5),(19,6),(15,5),(19,6),(0,0),
+    (27,2),(28,2),(23,3),(20,1),(14,5),(47,0),(44,4),(33,5),(35,6),(21,3),(10,1),
+    (25,1),(40,3),(0,0),(14,0),(42,1),(9,1),(21,6),(12,6),(24,3),(46,4),(17,0),
+    (11,2),(12,3),(44,1),(10,5),(2,4),(40,6),(7,3),(13,4),(44,4),(22,3),(1,4),
+    (36,4),(37,1),(20,4),(41,6),(13,3),(4,4),(6,5),(45,6),(33,3),(27,4),(43,4),
+    (19,0),(25,5),(45,3),(44,3),(9,6),(34,5),(15,2),(1,5),(26,2),(34,5),(25,0),
+    (47,3),(9,4),(39,0),(10,1),(24,0),(41,4),(2,4),(14,5),(19,5),(43,1),(22,6),
+    (31,4),(0,2),(28,1),(30,4),(19,4),(0,3),(8,3),(23,0),(38,1),(44,6),(24,2),
+    (43,3),(34,0),(25,0),(1,5),(35,2),(45,2),(22,4),(34,5),(33,1),(37,4),(44,1),
+    (20,0),(4,0),(0,3),(29,6),(24,1),(46,3),(31,4),(43,2),(12,2),(28,5),(3,2),
+    (4,0),(24,6),(21,0),(27,4),(38,2),(37,6),(15,2),(35,3),(30,3),(13,1),(32,4),
+    (10,6),(11,5),(39,5),(25,5),(10,5),(16,2),(0,6),(11,2),(21,3),(6,3),(36,5),
+    (20,1),(39,4),(28,3),(17,2),(35,1),(42,2),(30,0),(35,6),(20,4),(36,0),(12,5),
+    (13,3),(22,0),(11,1),(0,5),(34,4),(18,5),(18,6),(44,3),(23,6),(7,4),(21,3),
+    (17,3),(11,4),(7,2),(27,0),(0,6),(42,6),(24,4),(30,3),(21,6),(27,0),(18,6),
+    (40,3),(33,6),(42,6),(34,4),(23,2),(18,2),(29,2),(31,1),(35,2),(45,3),(9,5),
+    (31,2),(18,6),(37,0),(36,2),(8,0),(25,6),(20,0),(47,3),(38,5),(12,5),(6,4),
+    (2,5),(15,0),(34,0),(38,0),(35,4),(20,2),(1,1),(42,2),(28,1),(33,3),(47,1),
+    (17,1),(11,0),(7,1),(22,1),(23,2),(20,3),(25,2),(23,1),(43,1),(24,6),(41,6),
+    (43,3),(22,0),(1,2),(8,6),(14,4),(17,4),(40,2),(35,6),(4,2),(33,3),(20,6),
+    (2,5),(39,4),(16,6),(0,3),(9,2),(16,5),(40,2),(47,2),(31,3),(17,1),(33,3),
+    (23,2),(35,4),(16,1),(41,6),(7,5),(2,1),(31,4),(38,0),(3,6),(42,6),(10,4),
+    (47,1),(24,6),(42,2),(44,6),(34,1),(20,5),(39,6),(46,0),(8,2),(41,3),(35,6),
+    (40,2),(20,4),(28,5),(10,0),(17,1),(27,0),(44,2),(40,1),(36,2),(5,3),(20,0),
+    (17,6),(45,0),(23,2),(29,1),(25,2),(43,2),(9,5),(4,1),(13,1),(8,6),(6,0),(28,5),
+]
+
+def undo_veh(data):
+    for idx, op in reversed(VEH_OPS):
+        if op == 0: data[idx] ^= 0x0D
+        elif op == 1: data[idx] = (data[idx] - 37) & 0xFF
+        elif op == 2: data[idx] = (data[idx] + 37) & 0xFF
+        elif op == 3: data[idx] ^= 0x25
+        elif op == 4: data[idx] = (data[idx] - 13) & 0xFF
+        elif op == 5: data[idx] = (data[idx] + 13) & 0xFF
+        elif op == 6:
+            for i in range(idx):
+                data[i] ^= 0xFF
+    return data
+
+def xor_stream(data):
+    for i in range(len(data)):
+        data[i] ^= XOR_KEY[i % 32]
+    return data
+
+def get_key():
+    raw = b''.join(struct.pack('<I', x) for x in [
+        0xA9A51F0D, 0x80CF669F, 0x63E7175C, 0xBDCD557A
+    ])
+    return bytes(raw[i] ^ b'BMXc'[i % 4] for i in range(16))
+
+def decrypt(ct):
+    data = bytearray(ct)
+    data = undo_veh(data)
+    data = xor_stream(data)
+    pt = AES.new(get_key(), AES.MODE_ECB).decrypt(bytes(data))
+    return pt[:-pt[-1]]
+
+if __name__ == "__main__":
+    f = sys.argv[1] if len(sys.argv) > 1 else "flag.tcp1p"
+    with open(f, "rb") as x:
+        print(decrypt(x.read()).decode())
+```
+`TCP1P{wh4t_4_r3v3rs3_3ng1neEr!_76ad1fea}`
+
+
+
+
+
