@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys, struct
 from Crypto.Cipher import AES
 
