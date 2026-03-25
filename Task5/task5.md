@@ -912,7 +912,7 @@ LABEL_30:
 Trong `ExceptionInfo` có chứa thông tin của `ExceptionRecord` và `ContextInfo`. 
 <img width="1776" height="44" alt="{99834936-D848-4F16-965A-16532F70CEFF}" src="https://github.com/user-attachments/assets/3a5192e1-a4f9-4a82-905e-05f08696b613" />
 `ContextRecord` thì nó đang chứa opcode của handler
-Lấy hết opcode rồi làm script
+Làm script
 ```py
 import sys, struct
 from Crypto.Cipher import AES
