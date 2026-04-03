@@ -351,7 +351,7 @@ exit:
 ```
 
 # Sub task
-### VEH
+## VEH
 Mới vào chương trình dẫn mình đến đoạn này 
 ```asm 
 .text:00007FF6D2862540 push    rsi
@@ -482,7 +482,7 @@ print(flag)
 ![{398AFA2A-1308-4D1A-A064-D8812AFDEE35}](https://hackmd.io/_uploads/rk48lJDcbg.png)
 
 
-### Wannaflag
+## Wannaflag
 Vào main
 ```ccp
 int __cdecl main(int argc, const char **argv, const char **envp)
@@ -1057,7 +1057,7 @@ if __name__ == "__main__":
 
 `TCP1P{wh4t_4_r3v3rs3_3ng1neEr!_76ad1fea}`
 
-### TrustMe
+## TrustMe
 
 Đầu tiên là main 
 ```cpp
@@ -1121,7 +1121,7 @@ void __noreturn sub_4033C0()
 }
 ```
 
-Hàm main này thì chống debug, rồi in ảnh thôi. Check lại asm của main 
+Hàm main này thì chống debug, rồi in ảnh thôi. Check lại asm của main.
 
 <img width="620" height="682" alt="{F05D9C6A-6246-4259-AB0E-3C3940E00574}" src="https://github.com/user-attachments/assets/a3a43bc8-99ea-4cd6-b0ef-c07752243467" />
 
@@ -1417,7 +1417,9 @@ _DWORD *sub_711480()
 }
 ``` 
 Mình đã resolve hết các API và có được như sau. Đây là Winsock API và nó đang được gọi để thiết lập kết nối
+
 Vậy thì nó cũng khá là rõ rồi ct sẽ conect tới server `192.168.89.136: 31337` để truyền data.
+
 Tiếp theo, sau khi ct gọi hết hàm của winsock, nó sẽ gọi `sub_402920` là một hàm rand
 ```cpp
 int __usercall sub_402920@<eax>(int a1@<ebp>)
@@ -1450,6 +1452,7 @@ int __usercall sub_402920@<eax>(int a1@<ebp>)
 }
 ```
 Hàm sinh ra 64 byte random 
+
 Tiếp theo, đoạn này đang cố load một cái DLL
 ```cpp
     v22 = sub_401F00(*(_DWORD *)(v19 + 8), *(_DWORD *)(v19 + 4));
@@ -1468,6 +1471,7 @@ Tiếp theo, đoạn này đang cố load một cái DLL
 <img width="1920" height="717" alt="{A6D4754B-76D3-4326-A495-4C4A534746D7}" src="https://github.com/user-attachments/assets/2963dc92-7ecd-4b64-b553-87f795878688" />
 
 - Tại số 6 server 31337 sẽ gửi đến client 51392 một cái key là `I'm_4_Gat3_K33per`
+
 - Tại số 9 ct có gửi một gói tin có 68 bytes và 64 bytes có được là do `sub_402920` cộng thêm 4 bytes padding. 64 bytes này sẽ được RC4 với key `I'm_4_Gat3_K33per`
 
 ```py
@@ -1501,6 +1505,7 @@ print(plaintext.decode("utf-8", errors="replace"))
 # WTPjWbJafqNPqrZFswaijmyVKMddOrKzukegbVDpXJqDfulPDmDwDasqTwxvibnM
 ```
 Tiếp theo data sẽ được gửi từ server 31337 về lại client 51392 qua 11, 13, 14, 16, 17, 19, 20, 22. Mình sẽ dump cái data này để lấy DLL
+
 Script
 ```py
 from scapy.all import rdpcap, TCP, Raw
