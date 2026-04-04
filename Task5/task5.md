@@ -1536,7 +1536,444 @@ with open("record.dll", "wb") as f:
 
 print("[+] Done")
 ```
-To be continued
+
+Sau đó chúng ta có một file DLL
+```cpp
+int __cdecl gen0(const char *a1)
+{
+  int v1; // esi
+  int result; // eax
+  int v3; // ecx
+  int v4; // edi
+  const char *v5; // edx
+  char v6; // al
+
+  v1 = strlen(a1);
+  result = sub_10001210(v1 + 1);
+  v3 = 0;
+  v4 = result;
+  if ( v1 <= 0 )
+  {
+    *(_BYTE *)(result + v1) = 0;
+  }
+  else
+  {
+    v5 = &a1[v1 - 1];
+    do
+    {
+      v6 = *v5--;
+      *(_BYTE *)(v3 + v4) = v6;
+      ++v3;
+    }
+    while ( v3 < v1 );
+    *(_BYTE *)(v4 + v1) = 0;
+    return v4;
+  }
+  return result;
+}
+```
+```cpp
+int __cdecl gen1(const char *a1)
+{
+  const char *v1; // edi
+  int v2; // esi
+  int result; // eax
+  int v4; // ebx
+  int (__cdecl *v5)(int); // ecx
+  int v6; // ebx
+  int v7; // esi
+  bool v8; // zf
+  char v9; // al
+  int v10; // eax
+  char v11; // cl
+  int v12; // [esp-4h] [ebp-2Ch]
+  int v13; // [esp+Ch] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-18h]
+
+  v1 = a1;
+  v2 = strlen(a1);
+  v14 = v2;
+  result = sub_10001210(v2 + 1);
+  v4 = result;
+  v13 = result;
+  if ( v2 > 0 )
+  {
+    v5 = islower;
+    v6 = v2;
+    v7 = result - (_DWORD)a1;
+    while ( 1 )
+    {
+      v8 = v5(*v1) == 0;
+      v12 = *v1;
+      if ( !v8 )
+        break;
+      v10 = isupper(v12);
+      v11 = *v1;
+      if ( v10 )
+      {
+        v9 = tolower(v11);
+        goto LABEL_7;
+      }
+LABEL_8:
+      (v1++)[v7] = v11;
+      v5 = islower;
+      if ( !--v6 )
+      {
+        v4 = v13;
+        result = v13;
+        v2 = v14;
+        goto LABEL_10;
+      }
+    }
+    v9 = toupper(v12);
+LABEL_7:
+    v11 = v9;
+    goto LABEL_8;
+  }
+LABEL_10:
+  *(_BYTE *)(v4 + v2) = 0;
+  return result;
+}
+```
+```cpp
+_BYTE *__cdecl gen2(const char *a1)
+{
+  signed int v1; // esi
+  _BYTE *v2; // edx
+  int i; // ecx
+
+  v1 = strlen(a1);
+  v2 = (_BYTE *)sub_10001210(v1 + 1);
+  *v2 = a1[v1 - 1];
+  for ( i = 1; i < v1; ++i )
+    v2[i] = a1[i - 1];
+  v2[v1] = 0;
+  return v2;
+}
+```
+```cpp
+int __cdecl gen3(const char *a1)
+{
+  int v1; // esi
+  int result; // eax
+  int v3; // ebx
+  _BYTE *v4; // edi
+  char v5; // cl
+  char v6; // dl
+  const char *v7; // [esp+10h] [ebp-4h]
+
+  v1 = strlen(a1);
+  result = sub_10001210(v1 + 1);
+  if ( v1 > 0 )
+  {
+    v7 = &a1[-result];
+    v3 = v1;
+    v4 = (_BYTE *)result;
+    do
+    {
+      v5 = v4[(_DWORD)v7];
+      if ( (unsigned __int8)(v5 - 65) > 0x19u )
+      {
+        if ( (unsigned __int8)(v5 - 97) > 0x19u )
+          v6 = v4[(_DWORD)v7];
+        else
+          v6 = (v5 - 84) % 26 + 97;
+      }
+      else
+      {
+        v6 = (v5 - 52) % 26 + 65;
+      }
+      *v4++ = v6;
+      --v3;
+    }
+    while ( v3 );
+  }
+  *(_BYTE *)(result + v1) = 0;
+  return result;
+}
+```
+- gen0 : Đảo string.
+- gen1 : Đổi chữ hoa thành chữ thường và ngược lại.
+- gen2 : Lấy kí tự cuối đảo lên vị trí đầu.
+- gen3 : ROT13.
+
+Vào lại ct chính ở `sub_402E80`
+```cpp
+int __stdcall sub_402E80(int **a1)
+{
+  int v1; // eax
+  _DWORD *v2; // eax
+  int v3; // esi
+  void *v5; // edx
+  int *v6; // eax
+  int v7; // ecx
+  int v8; // ecx
+  char v9; // [esp+13h] [ebp-1h] BYREF
+
+  if ( *(_DWORD *)(sub_401480() + 400) == -1 || !*(_DWORD *)dword_4203B4 )
+  {
+    a1[1][46] += 5;
+    return -1;
+  }
+  v1 = **a1;
+  if ( v1 == -1073741819 )
+  {
+    v2 = (_DWORD *)dword_420394;
+    qmemcpy(dword_420398, a1[1], 0x2CCu);
+    if ( dword_42035C <= (int)(*v2 / (unsigned int)dword_41F8B0) )
+    {
+      v3 = sub_401480();
+      if ( !(*(int (__stdcall **)(_DWORD, char *, int, _DWORD))(v3 + 488))(*(_DWORD *)(v3 + 400), &v9, 1, 0) )
+      {
+        *(_DWORD *)(v3 + 400) = 0;
+        *(_BYTE *)(v3 + 496) = 0;
+      }
+      switch ( v9 )
+      {
+        case 0:
+          a1[1][46] = (int)sub_402A40;
+          return -1;
+        case 1:
+          a1[1][46] = (int)sub_402B50;
+          return -1;
+        case 2:
+          a1[1][46] = (int)sub_402C60;
+          return -1;
+        case 3:
+          a1[1][46] = (int)sub_402D70;
+          return -1;
+      }
+    }
+    return -1;
+  }
+  if ( v1 != -2147483645 )
+    return -1;
+  v5 = dword_420398;
+  if ( !*((_DWORD *)dword_420398 + 46) )
+    return -1;
+  qmemcpy(a1[1], dword_420398, 0x2CCu);
+  v6 = a1[1];
+  v7 = v6[46];
+  if ( dword_41F8B0 )
+    v8 = v7 - 2;
+  else
+    v8 = v7 + 5;
+  v6[46] = v8;
+  memset(v5, 0, 0x2CCu);
+  return -1;
+}
+```
+Ct sẽ lấy bytes được gửi từ server dùng cho các cases
+
+Tại số 25 nó sẽ gửi đến client case 2 
+
+<img width="1920" height="413" alt="{341554C2-0417-425C-8F39-FA5932D47B60}" src="https://github.com/user-attachments/assets/205e7cc4-71ac-4dbf-911f-f042c0aa1717" />
+
+Tức là case 2
+
+Vậy tiếp theo mình sẽ sử dụng tshark để xem hết các command nó gửi đến cilent 
+```bash
+tshark -r record.pcapng \
+-Y "ip.src==192.168.89.136 && tcp.srcport==31337 && tcp.len==1" \
+-T fields -e frame.number -e data
+```
+Mình sẽ có như sau 
+```
+25      02
+761     01
+1494    01
+2227    02
+2960    03
+3693    02
+4426    03
+5159    01
+5892    02
+6625    03
+7358    01
+8091    00
+8824    02
+9557    03
+10290   00
+11023   00
+11756   02
+12489   01
+13222   01
+13955   00
+14688   00
+15421   03
+```
+
+Ta có thể thấy các cases là 
+- `sub_402A40` = gen0
+- `sub_402B50` = gen1
+- `sub_402C60` = gen2
+- `sub_402D70` = gen3 
+
+và ct sẽ lấy key ban đầu đưa vào các gen0123 ra key mới
+```py
+key = "WTPjWbJafqNPqrZFswaijmyVKMddOrKzukegbVDpXJqDfulPDmDwDasqTwxvibnM"
+
+def gen0(s: str) -> str:
+    return s[::-1]
+
+def gen1(s: str) -> str:
+    result = []
+    for c in s:
+        if c.islower():
+            result.append(c.upper())
+        elif c.isupper():
+            result.append(c.lower())
+        else:
+            result.append(c)
+    return ''.join(result)
+
+def gen2(a1: str) -> str:
+    return a1[-1] + a1[:-1] if a1 else ''
+
+def gen3(s: str) -> str:
+    result = []
+
+    for c in s:
+        if 'a' <= c <= 'z':
+            shifted = (ord(c) - ord('a') + 13) % 26
+            result.append(chr(shifted + ord('a')))
+
+        elif 'A' <= c <= 'Z':
+            shifted = (ord(c) - ord('A') + 13) % 26
+            result.append(chr(shifted + ord('A')))
+
+        else:
+            result.append(c)
+
+    return ''.join(result)
+
+print("gen0  :", gen0(key))
+print("gen1  :", gen1(key))
+print("gen2  :", gen2(key))
+print("gen3  :", gen3(key))
+```
+```
+gen0  : MnbivxwTqsaDwDmDPlufDqJXpDVbgekuzKrOddMKVymjiawsFZrqPNqfaJbWjPTW
+gen1  : wtpJwBjAFQnpQRzfSWAIJMYvkmDDoRkZUKEGBvdPxjQdFULpdMdWdASQtWXVIBNm
+gen2  : MWTPjWbJafqNPqrZFswaijmyVKMddOrKzukegbVDpXJqDfulPDmDwDasqTwxvibn
+gen3  : JGCwJoWnsdACdeMSfjnvwzlIXZqqBeXmhxrtoIQcKWdQshyCQzQjQnfdGjkivoaZ
+```
+Giờ mình sẽ dump data 
+
+Vd: số 27 -> 760 là của case 2 và dump cho đến hết tất cả các case
+```py
+import subprocess
+import os
+import sys
+
+PCAP = "record.pcapng"
+OUT  = "chunks"
+CLIENT_IP  = "192.168.89.1"
+SERVER_PORT = 31337
+
+MARKERS = [
+    (25,    0x02),
+    (761,   0x01),
+    (1494,  0x01),
+    (2227,  0x02),
+    (2960,  0x03),
+    (3693,  0x02),
+    (4426,  0x03),
+    (5159,  0x01),
+    (5892,  0x02),
+    (6625,  0x03),
+    (7358,  0x01),
+    (8091,  0x00),
+    (8824,  0x02),
+    (9557,  0x03),
+    (10290, 0x00),
+    (11023, 0x00),
+    (11756, 0x02),
+    (12489, 0x01),
+    (13222, 0x01),
+    (13955, 0x00),
+    (14688, 0x00),
+    (15421, 0x03),
+]
+
+LAST_FRAME = 16659 
+
+def extract_chunk(pcap, out_dir, idx, marker_frame, oracle_val, end_frame):
+    start = marker_frame + 2
+
+    display_filter = (
+        f"ip.src == {CLIENT_IP} && "
+        f"tcp.dstport == {SERVER_PORT} && "
+        f"tcp.len > 0 && "
+        f"frame.number >= {start} && "
+        f"frame.number <= {end_frame}"
+    )
+
+    out_path = os.path.join(out_dir, f"data{idx}.txt")
+    with open(out_path, "w") as f:
+        subprocess.run(
+            ["tshark", "-r", pcap,
+             "-Y", display_filter,
+             "-T", "fields", "-e", "data"],
+            stdout=f, stderr=subprocess.DEVNULL, check=True
+        )
+
+    lines = open(out_path).read().strip().split("\n")
+    lines = [l for l in lines if l]
+    total_bytes = sum(len(l) // 2 for l in lines)
+    print(f"[{idx:2d}] marker={marker_frame:5d}  oracle=0x{oracle_val:02x}  "
+          f"frames {start}..{end_frame}  segs={len(lines):3d}  bytes={total_bytes} (0x{total_bytes:06x})"
+          f"  -> {out_path}")
+    return total_bytes
+
+
+def main():
+    pcap = sys.argv[1] if len(sys.argv) > 1 else PCAP
+    os.makedirs(OUT, exist_ok=True)
+
+    print(f"pcap  : {pcap}")
+    print(f"output: {OUT}/\n")
+
+    for i, (marker, val) in enumerate(MARKERS):
+        if i + 1 < len(MARKERS):
+            end = MARKERS[i + 1][0] - 1   
+        else:
+            end = LAST_FRAME
+        extract_chunk(pcap, OUT, i, marker, val, end)
+
+    print("\ndone.")
+
+
+if __name__ == "__main__":
+    main()
+```
+Script solve
+```py
+from arc4 import ARC4
+
+keys = [
+    b'MnbivxwTqsaDwDmDPlufDqJXpDVbgekuzKrOddMKVymjiawsFZrqPNqfaJbWjPTW',
+    b'wtpJwBjAFQnpQRzfSWAIJMYvkmDDoRkZUKEGBvdPxjQdFULpdMdWdASQtWXVIBNm',
+    b'MWTPjWbJafqNPqrZFswaijmyVKMddOrKzukegbVDpXJqDfulPDmDwDasqTwxvibn',
+    b'JGCwJoWnsdACdeMSfjnvwzlIXZqqBeXmhxrtoIQcKWdQshyCQzQjQnfdGjkivoaZ'
+]
+index = [2, 1, 1, 2, 3, 2, 3, 1, 2, 3, 1, 0, 2, 3, 0, 0, 2, 1, 1, 0, 0, 3]
+
+total = b''
+for i in range(22):
+    with open(f"data{i}.txt", "r") as f:
+        enc_data = bytes.fromhex(''.join(f.read().split()))
+    cipher = ARC4(keys[index[i]])
+    total += cipher.decrypt(enc_data)
+    print(f"[{i:2d}] key={index[i]}  {len(enc_data):>7d} bytes  ok")
+
+with open("flag.bmp", "wb") as f:
+    f.write(total)
+```
+
+<img width="1856" height="639" alt="{E11548E1-3ADE-4388-B24C-066EE4ED6794}" src="https://github.com/user-attachments/assets/7af3d6a8-5799-4bfb-b9db-693b9a7b0c26" />
+
+
 
 
 
