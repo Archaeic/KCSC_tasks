@@ -1777,7 +1777,7 @@ tshark -r record.pcapng \
 -Y "ip.src==192.168.89.136 && tcp.srcport==31337 && tcp.len==1" \
 -T fields -e frame.number -e data
 ```
-Mình sẽ có như sau 
+Mình sẽ có như sau.
 ```
 25      02
 761     01
