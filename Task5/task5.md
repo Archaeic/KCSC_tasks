@@ -1228,7 +1228,7 @@ LABEL_9:
   }
 }
 ```
-Thế nhưng ct có một function này khá đặc biệt
+Thế nhưng ct có một function này khá đặc biệt nằm ở initterm
 ```cpp
 int sub_403010()
 {
