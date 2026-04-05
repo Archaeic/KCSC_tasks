@@ -1,4 +1,4 @@
-# Task 2
+# Task 2.
 
 1. Chương trình asm: thuật toán mã hóa RC4                                                                                                                        
 Chạy được và phải đúng
