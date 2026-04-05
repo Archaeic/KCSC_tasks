@@ -1,4 +1,4 @@
-# Task 1: Assembly 101
+# Task 1: Assembly 101.
 
 Nguồn học: [1](https://www.youtube.com/watch?v=bhTGgzRsn1k&t=3416s), [2](https://adminvietnam.org/kien-thuc-co-ban-ve-assembly/4463/)
 ## 1. Lý thuyết 
